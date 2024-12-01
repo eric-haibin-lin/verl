@@ -134,7 +134,7 @@ class ActorRolloutRefWorker(Worker):
             actor_module = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=local_path,
                                                                 torch_dtype=torch_dtype,
                                                                 config=actor_model_config,
-                                                                attn_implementation='flash_attention_2',
+                                                                # attn_implementation='flash_attention_2',
                                                                 trust_remote_code=trust_remote_code)
             # some parameters may not in torch_dtype. TODO(zhangchi.usc1992) remove this after we switch to fsdp2
             actor_module.to(torch_dtype)
@@ -493,7 +493,7 @@ class CriticWorker(Worker):
             critic_module = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=local_path,
                                                                  torch_dtype=torch_dtype,
                                                                  config=critic_model_config,
-                                                                 attn_implementation='flash_attention_2',
+                                                                 # attn_implementation='flash_attention_2',
                                                                  trust_remote_code=trust_remote_code)
             critic_module.lm_head = nn.Sequential(nn.Linear(critic_model_config.hidden_size, 1, dtype=torch_dtype),
                                                   LambdaLayer(fn=squeeze))
@@ -685,7 +685,7 @@ class RewardModelWorker(Worker):
             warnings.simplefilter("ignore")
             reward_module = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=local_path,
                                                                                torch_dtype=torch.bfloat16,
-                                                                               attn_implementation='flash_attention_2',
+                                                                               # attn_implementation='flash_attention_2',
                                                                                trust_remote_code=trust_remote_code)
             reward_module.to(torch.bfloat16)
         auto_wrap_policy = get_fsdp_wrap_policy(module=reward_module, config=self.config.model.fsdp_config)
