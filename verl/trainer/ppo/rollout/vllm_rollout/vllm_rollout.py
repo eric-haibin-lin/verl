@@ -120,6 +120,13 @@ class vLLMRollout(BaseRollout):
         print(f"kwargs: {kwargs}")
         self.sampling_params = SamplingParams(**kwargs)
 
+        # Manually set pad token for llama.
+        # See discussions: https://discuss.huggingface.co/t/how-to-set-the-pad-token-for-meta-llama-llama-3-models/103418/7
+        if tokenizer.pad_token_id is None and 'llama' in tokenizer.name_or_path.lower():
+            tokenizer.pad_token = '<|finetune_right_pad_id|>'
+            bos_token_id, pad_token_id = tokenizer.encode(tokenizer.pad_token)
+            tokenizer.pad_token_id = pad_token_id
+
         self.pad_token_id = tokenizer.pad_token_id
 
     @contextmanager
