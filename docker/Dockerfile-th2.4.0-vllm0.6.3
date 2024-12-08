@@ -1,0 +1,56 @@
+# docker buildx build -t "haibinlin/verl:th2.4.0-cu121-vllm0.5.4" -f docker/Dockerfile.th2.4.0 .
+
+FROM vllm/vllm-openai:v0.6.3.post1
+
+LABEL com.nvidia.volumes.needed="nvidia_driver"
+LABEL com.nvidia.cuda.version=
+ENV NVIDIA_VISIBLE_DEVICES= \
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/cuda/lib64
+
+RUN apt-get update && apt-get install git vim -y
+
+RUN apt-get install wget -y && \
+    wget --no-check-certificate https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+
+RUN apt-get install --reinstall ca-certificates && update-ca-certificates
+
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/./cuda-visual-tools-12-4_12.4.1-1_amd64.deb
+
+RUN dpkg -i cuda-keyring_1.1-1_all.deb && \
+    apt update && apt install -y --fix-missing cuda-12-4
+
+RUN which nvcc
+
+# install common libs
+RUN pip3 install --no-cache-dir -U \
+    accelerate \
+    codetiming \
+    dill \
+    hydra-core \
+    numpy \
+    pybind11 \
+    tensordict \
+    transformers \
+    flash-attn --no-build-isolation \
+    ray==2.40
+
+# intall apex
+WORKDIR /tmp/third_party
+
+# install apex
+# check their github repo for the latest installation command. the command changes from time to time.
+RUN MAX_JOBS=4 pip3 install -v --disable-pip-version-check --no-cache-dir --no-build-isolation \
+    --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" \
+    git+https://github.com/NVIDIA/apex
+
+# install TransformerEngine
+RUN MAX_JOBS=4 pip install git+https://github.com/NVIDIA/TransformerEngine.git@v1.7
+
+# install megatron
+RUN pip3 install git+https://github.com/NVIDIA/Megatron-LM.git@core_v0.7.0
+
+RUN pip3 install --no-cache-dir cupy-cuda12x
+
+RUN rm -rf /tmp/third_party
+
+ENTRYPOINT []
