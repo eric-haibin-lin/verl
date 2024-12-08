@@ -1,4 +1,4 @@
-# docker buildx build -t "haibinlin/verl:th2.4.0-cu121-vllm0.5.4" -f docker/Dockerfile.th2.4.0 .
+# docker buildx build -t "verlai/verl:ngc-base-v0.0.1" -f docker/xxx .
 
 FROM nvcr.io/nvidia/pytorch:24.05-py3
 
