@@ -27,7 +27,7 @@ RUN pip3 install --no-cache-dir \
     "transformers<=4.46.0"
 
 # ray is installed via vllm
-RUN pip3 install --no-cache-dir vllm==0.6.3
+RUN pip3 install --no-cache-dir vllm==0.6.3 ray==2.10
 
 # we choose flash-attn v2.7.0 or v2.7.2 which contain pre-built wheels
 RUN pip3 install --no-cache-dir --no-build-isolation flash-attn==2.7.0.post2
