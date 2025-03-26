@@ -58,7 +58,7 @@ RUN pip uninstall -y pynvml nvidia-ml-py && \
     pip install -U optree>=0.13.0
 
 # Install verl
-RUN pip install verl==0.3.0.rc0 -i https://test.pypi.org/simple/
+RUN pip install verl[vllm] -i https://test.pypi.org/simple/
 
 # Unset pip index url
 RUN pip config unset global.index-url && pip config unset global.extra-index-url
