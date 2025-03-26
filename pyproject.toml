@@ -42,10 +42,9 @@ dependencies = [
     "pybind11",
     "pylatexenc",
     "ray>=2.10",
-    "tensordict<0.6",
+    "tensordict",
     "torchdata",
     "transformers",
-    "vllm<=0.6.3",
     'wandb',
 ]
 
@@ -58,6 +57,7 @@ prime = ["pyext"]
 gpu = ["liger-kernel", "flash-attn"]
 sglang = ["sglang[all]==0.4.4"]
 math = ["math-verify"]  # Add math-verify as an optional dependency
+vllm = ["tensordict<=0.6.2", "vllm<=0.8.2"]
 
 # URLs
 [project.urls]
