@@ -8,11 +8,19 @@ on:
       - main
       - v0.2.x
     paths:
-      - "**/*.py"
+      - "verl/**.py"
+      - "verl/**.yaml"
+      - examples/data_preprocess/gsm8k.py
+      - tests/sft/run_sft.sh
+      - examples/sft/gsm8k/run_qwen_05_sp2.sh
+      - tests/sft/run_sft_sp_loss_match.sh
+      - tests/sft/run_sft_qwen05_sp2_liger.sh
       - .github/workflows/e2e_sft.yml
-      - "tests/e2e/*.sh"
-      - "!verl/trainer/main_ppo.py"
-      - "!recipe/**"
+      - "!verl/workers/rollout/sglang_rollout/**"
+      - "!verl/third_party/sglang/**"
+      - "!**/*megatron*/**"
+      - "!**/*megatron**"
+
 
 # Cancel jobs on the same ref if a new one is triggered
 concurrency:

@@ -7,12 +7,19 @@ on:
     branches:
       - main
     paths:
-      - "**/*.py"
-      - "verl/trainer/config/*.yaml"
+      - "verl/**.py"
+      - "verl/**.yaml"
+      - examples/data_preprocess/gsm8k.py
+      - tests/e2e/run_qwen_grpo.sh
+      - tests/e2e/run_qwen_grpo_megatron.sh
+      - tests/e2e/run_deepseek_grpo.sh
+      - tests/e2e/run_deepseek_grpo_megatron.sh
       - .github/workflows/e2e_grpo.yml
-      - "tests/e2e/*.sh"
-      - "!verl/trainer/fsdp_sft_trainer.py"
-      - "!recipe/**"
+      - "!verl/workers/rollout/sglang_rollout/**"
+      - "!verl/third_party/sglang/**"
+      - "!**/*megatron*/**"
+      - "!**/*megatron**"
+
 
 # Cancel jobs on the same ref if a new one is triggered
 concurrency:

@@ -8,10 +8,12 @@ on:
       - main
     paths:
       - "verl/utils/dataset/*.py"
+      - "tests/verl/utils/dataset/test_rl_dataset.py"
+      - "tests/verl/utils/dataset/test_sft_dataset.py"
+      - "tests/ray/test_rvdz.py"
       - .github/workflows/dataset.yml
-      - "!verl/workers/fsdp_workers.py"
-      - "!verl/workers/megatron_workers.py"
-      - "!recipe/**"
+      - "!**/*megatron*/**"
+      - "!**/*megatron**"
 
 # Cancel jobs on the same ref if a new one is triggered
 concurrency:

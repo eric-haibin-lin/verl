@@ -8,10 +8,16 @@ on:
       - main
       - v0.3.x
     paths:
-      - "**/*.py"
+      - "verl/**.py"
+      - "verl/**.yaml"
+      - examples/data_preprocess/geo3k.py
+      - tests/e2e/run_qwen2vl_geo3k_function_rm.sh
       - .github/workflows/e2e_vlm_geo3k.yml
-      - "tests/e2e/*vl*.sh"
-      - "!recipe/**"
+      - "!verl/workers/rollout/sglang_rollout/**"
+      - "!verl/third_party/sglang/**"
+      - "!**/*megatron*/**"
+      - "!**/*megatron**"
+
 
 # Declare permissions just read content.
 permissions: 

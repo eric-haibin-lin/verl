@@ -8,10 +8,15 @@ on:
       - main
       - v0.3.x
     paths:
-      - "**/*.py"
-      - "tests/model/*"
+      - "verl/**.py"
+      - "verl/**.yaml"
+      - "tests/model/test_transformer.py"
+      - "tests/checkpoint/test_fsdp_ckpt.py"
+      - "tests/model/test_transformers_ulysses.py"
+      - "tests/distributed/run_all.sh"
       - .github/workflows/model.yml
-      - "!recipe/**"
+      - "!**/*megatron*/**"
+      - "!**/*megatron**"
 
 # Declare permissions just read content.
 permissions: 

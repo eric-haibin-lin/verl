@@ -8,11 +8,26 @@ on:
       - main
       - v0.2.x
     paths:
-      - "**/*.py"
-      - "verl/trainer/config/*.yaml"
+      - "verl/**.py"
+      - "verl/**.yaml"
+      - examples/data_preprocess/gsm8k.py
+      - tests/e2e/run_qwen_gsm8k_function_rm.sh
+      - tests/e2e/run_qwen_gsm8k_function_rm_no_rmpad.sh
+      - tests/e2e/run_qwen_gsm8k_function_rm_grpo.sh
+      - tests/e2e/run_qwen_gsm8k_function_rm_remax.sh
+      - tests/e2e/run_qwen_gsm8k_model_rm.sh
+      - tests/e2e/run_qwen_gsm8k_model_rm_no_rmpad.sh
+      - tests/e2e/run_qwen_gsm8k_model_rm_ulysses.sh
+      - tests/e2e/run_qwen_gsm8k_model_rm_seq_balance.sh
+      - tests/e2e/run_qwen_gsm8k_model_rm_liger_kernel.sh
+      - tests/e2e/run_qwen_gsm8k_custom_function_rm.sh
+      - tests/e2e/run_qwen_gsm8k_function_rm_both_kl.sh
       - .github/workflows/e2e_gsm8k.yml
-      - "tests/e2e/*gsm8k*.sh"
-      - "!recipe/**"
+      - "!verl/workers/rollout/sglang_rollout/**"
+      - "!verl/third_party/sglang/**"
+      - "!**/*megatron*/**"
+      - "!**/*megatron**"
+
 
 # Cancel jobs on the same ref if a new one is triggered
 concurrency:

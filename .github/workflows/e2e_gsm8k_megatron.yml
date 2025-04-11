@@ -9,12 +9,15 @@ on:
       - main
       - v0.3.x
     paths:
-      - "**/*.py"
-      - "verl/trainer/config/*.yaml"
+      - "verl/**.py"
+      - "verl/**.yaml"
+      - examples/data_preprocess/gsm8k.py
+      - tests/e2e/run_deepseek_megatron_parallelism.sh
+      - tests/e2e/run_qwen_megatron_parallelism.sh
       - .github/workflows/e2e_gsm8k_megatron.yml
-      - "tests/e2e/*megatron*.sh"
-      - "!verl/workers/fsdp_workers.py"
-      - "!recipe/**"
+      - "!verl/workers/rollout/sglang_rollout/**"
+      - "!verl/third_party/sglang/**"
+
 
 # Cancel jobs on the same ref if a new one is triggered
 concurrency:

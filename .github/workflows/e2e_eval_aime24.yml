@@ -7,12 +7,19 @@ on:
     branches:
       - main
     paths:
-      - "**/*.py"
-      - "verl/trainer/config/*.yaml"
+      - "verl/**.py"
+      - "verl/**.yaml"
+      - "recipe/r1/**"
+      - recipe/r1/data_process.py
+      - tests/e2e/run_r1_distill_qwen_aime24_eval.sh
       - .github/workflows/e2e_eval_aime24.yml
-      - "tests/e2e/run_r1_distill_qwen_aime24_eval.sh"
       - "!verl/trainer/main_ppo.py"
       - "!verl/trainer/fsdp_sft_trainer.py"
+      - "!verl/workers/rollout/sglang_rollout/**"
+      - "!verl/third_party/sglang/**"
+      - "!**/*megatron*/**"
+      - "!**/*megatron**"
+
 
 # Declare permissions just read content.
 permissions:

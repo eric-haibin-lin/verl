@@ -16,8 +16,8 @@ on:
       - v0.2.x
     paths:
       - "verl/single_controller/*.py"
+      - "tests/ray/**"
       - .github/workflows/ray_test.yml
-      - "!recipe/**"
 
 # Cancel jobs on the same ref if a new one is triggered
 concurrency:

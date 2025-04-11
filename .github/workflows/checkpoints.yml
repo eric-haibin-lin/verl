@@ -7,10 +7,15 @@ on:
     branches:
       - main
     paths:
-      - "**/*.py"
-      - "verl/trainer/config/*.yaml"
+      - "verl/**.py"
+      - "verl/**.yaml"
+      - examples/data_preprocess/gsm8k.py
+      - tests/checkpoint/run_qwen_megatron_ckpt.sh
+      - tests/checkpoint/run_deepseek_megatron_ckpt.sh
+      - scripts/model_merger.py
       - .github/workflows/checkpoints.yml
-      - "tests/checkpoint/*.sh"
+      - "!verl/workers/rollout/sglang_rollout/**"
+      - "!verl/third_party/sglang/**"
 
 # Cancel jobs on the same ref if a new one is triggered
 concurrency:

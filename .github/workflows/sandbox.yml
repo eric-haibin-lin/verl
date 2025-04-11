@@ -8,7 +8,9 @@ on:
       - main
       - v0.3.x
     paths:
-      - "**/*.py"
+      - "verl/**.py"
+      - "verl/**.yaml"
+      - "tests/sandbox/**"
       - .github/workflows/sandbox.yml
 
 # Cancel jobs on the same ref if a new one is triggered

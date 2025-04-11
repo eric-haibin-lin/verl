@@ -7,11 +7,11 @@ on:
     branches:
       - main
     paths:
-      - "**/*.py"
-      - "verl/trainer/config/*.yaml"
+      - "verl/**.py"
+      - "verl/**.yaml"
+      - examples/data_preprocess/gsm8k.py
+      - tests/e2e/run_qwen_gsm8k_function_rm.sh
       - .github/workflows/e2e_sglang_gsm8k.yml
-      - "tests/e2e/*.sh"
-      - "!recipe/**"
 
 # Cancel jobs on the same ref if a new one is triggered
 concurrency:

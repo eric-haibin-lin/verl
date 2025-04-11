@@ -8,10 +8,14 @@ on:
       - main
       - v0.3.x
     paths:
-      - "**/*.py"
-      - "verl/trainer/config/*.yaml"
+      - "verl/**.py"
+      - "verl/**.yaml"
+      - "tests/rollout/test_vllm_hf_loader.py"
+      - "tests/rollout/test_vllm_spmd.py"
+      - "tests/generation/run_gen_qwen05.sh"
+      - "!verl/workers/rollout/sglang_rollout/**"
+      - "!verl/third_party/sglang/**"
       - .github/workflows/vllm.yml
-      - "!recipe/**"
 
 # Cancel jobs on the same ref if a new one is triggered
 concurrency:
