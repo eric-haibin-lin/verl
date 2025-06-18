@@ -180,6 +180,15 @@ actor_rollout_ref:
     # Constant C in Dual-clip PPO; clips when advantage < -C
     clip_ratio_c: 3.0
 
+    # Whether to use the CISPO loss
+    use_cispo: False
+
+    # Upper bound for asymmetric clipping of IS used in CISPO(only constraining the gradient scale instead of clipping off)
+    clip_ratio_is_high: 0.45
+
+    # Lower bound for asymmetric clipping of IS used in CISPO(only constraining the gradient scale instead of clipping off)
+    clip_ratio_is_low: 1.0
+
     # Loss aggregation mode: "token-mean", "seq-mean-token-sum", or "seq-mean-token-mean"
     loss_agg_mode: token-mean
 

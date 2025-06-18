@@ -540,6 +540,9 @@ def compute_policy_loss(
     cliprange_high=None,
     clip_ratio_c=3.0,
     loss_agg_mode: str = "token-mean",
+    use_cispo=False,
+    clip_ratio_is_high=0.45,
+    clip_ratio_is_low=1,
 ):
     """
     Compute the clipped policy objective and related metrics for PPO.
@@ -568,6 +571,14 @@ def compute_policy_loss(
             Defaults to 3.0.
         loss_agg_mode (str, optional):
             Aggregation mode for `agg_loss`. Defaults to "token-mean".
+        use_cispo (bool):
+            Whether to use the CISPO loss, see https://www.arxiv.org/pdf/2506.13585, which only constrains the gradient scale instead of clipping off tokens in PPO.
+        clip_ratio_is_high(float, optional):
+            Upper bound range for CISPO. 
+            Defaults to 0.45.
+        clip_ratio_is_low(float, optional):
+            Lower bound range for CISPO. 
+            Defaults to 1.0.
     """
     assert clip_ratio_c > 1.0, "The lower bound of the clip_ratio_c for dual-clip PPO should be greater than 1.0," + f" but get the value: {clip_ratio_c}."
 
@@ -591,6 +602,23 @@ def compute_policy_loss(
     pg_clipfrac_lower = verl_F.masked_mean(torch.gt(clip_pg_losses1, pg_losses3) * (advantages < 0).float(), response_mask)
 
     pg_losses = torch.where(advantages < 0, clip_pg_losses2, clip_pg_losses1)
+
+    if use_cispo:
+        ratio = ratio.detach()
+        importance_sampling_weight = torch.clamp(
+            ratio,
+            max = 1 + clip_ratio_is_high,
+            min = 1 - clip_ratio_is_low
+        )
+        pos_adv_mask = (advantages > 0) & (
+            ratio > 1 + cliprange_high
+        )
+        neg_adv_mask = (advantages < 0) & (
+            ratio < 1 - cliprange_low
+        )
+        adv_mask = ~(pos_adv_mask | neg_adv_mask)
+        pg_losses = - advantages * log_prob * importance_sampling_weight * adv_mask
+
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
 
     return pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower
