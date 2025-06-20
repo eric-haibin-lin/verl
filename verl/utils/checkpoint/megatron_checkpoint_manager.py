@@ -82,7 +82,7 @@ class MegatronCheckpointManager(BaseCheckpointManager):
             optimizer=optimizer,
             lr_scheduler=optimizer_scheduler,
             processing_class=tokenizer,
-            checkpoint_contents=checkpoint_contents,
+            checkpoint_config=checkpoint_contents,
         )
         self.arch = arch
         self.config = config

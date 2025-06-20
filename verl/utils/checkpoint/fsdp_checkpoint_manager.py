@@ -75,7 +75,7 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             optimizer,
             lr_scheduler=lr_scheduler,
             processing_class=processing_class,
-            checkpoint_contents=checkpoint_contents,
+            checkpoint_config=checkpoint_contents,
         )
 
     def load_checkpoint(self, local_path: str, hdfs_path: str = None, del_local_after_load=False):

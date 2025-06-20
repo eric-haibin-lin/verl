@@ -418,7 +418,7 @@ class ActorRolloutRefWorker(MegatronWorker, DistProfilerExtension):
                 optimizer_scheduler=self.actor_optimizer_scheduler,
                 use_distributed_optimizer=self.config.actor.megatron.use_distributed_optimizer,
                 use_checkpoint_opt_param_scheduler=self.config.actor.optim.use_checkpoint_opt_param_scheduler,
-                checkpoint_contents=self.config.actor.checkpoint,
+                checkpoint_config=self.config.actor.checkpoint,
             )
         get_torch_device().empty_cache()
         log_gpu_memory_usage("After init_model finish", logger=logger)
@@ -768,7 +768,7 @@ class CriticWorker(MegatronWorker, DistProfilerExtension):
             optimizer_scheduler=self.critic_optimizer_scheduler,
             use_distributed_optimizer=self.config.megatron.use_distributed_optimizer,
             use_checkpoint_opt_param_scheduler=self.config.optim.use_checkpoint_opt_param_scheduler,
-            checkpoint_contents=self.config.checkpoint,
+            checkpoint_config=self.config.checkpoint,
         )
 
     @register(dispatch_mode=Dispatch.MEGATRON_COMPUTE_PROTO)

@@ -576,20 +576,20 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 optimizer=self.actor.actor_optimizer,
                 lr_scheduler=self.actor_lr_scheduler,
                 processing_class=self.processor if self.processor is not None else self.tokenizer,
-                checkpoint_contents=self.config.actor.checkpoint,
+                checkpoint_config=self.config.actor.checkpoint,
             )
 
         if not self._is_actor and self._is_rollout:
             # If ActorRolloutRefWorker is initialized as a standalone rollout,
             # create a checkpoint manager for FSDP model to allow loading FSDP checkpoints for rollout.
 
-            checkpoint_contents = OmegaConf.create({"load_contents": ["model"], "save_contents": []})
+            checkpoint_config = OmegaConf.create({"load_contents": ["model"], "save_contents": []})
             self.checkpoint_manager = FSDPCheckpointManager(
                 model=self.actor_module_fsdp,
                 optimizer=None,
                 lr_scheduler=None,
                 processing_class=self.processor if self.processor is not None else self.tokenizer,
-                checkpoint_contents=checkpoint_contents,
+                checkpoint_config=checkpoint_config,
             )
 
     @register(dispatch_mode=Dispatch.DP_COMPUTE_PROTO)
@@ -1061,7 +1061,7 @@ class CriticWorker(Worker, DistProfilerExtension):
             optimizer=self.critic_optimizer,
             lr_scheduler=self.critic_lr_scheduler,
             processing_class=self.processor if self.processor is not None else self.tokenizer,
-            checkpoint_contents=self.config.checkpoint,
+            checkpoint_config=self.config.checkpoint,
         )
 
     @register(dispatch_mode=Dispatch.DP_COMPUTE_PROTO)
