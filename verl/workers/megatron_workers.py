@@ -31,7 +31,7 @@ from omegaconf import DictConfig, OmegaConf
 from verl import DataProto
 from verl.single_controller.base.decorator import Dispatch, register
 from verl.single_controller.base.megatron.worker import MegatronWorker
-from verl.utils import hf_tokenizer, omega_conf_to_dataclass
+from verl.utils import OptimConfig, hf_tokenizer, omega_conf_to_dataclass
 from verl.utils.checkpoint.megatron_checkpoint_manager import MegatronCheckpointManager
 from verl.utils.debug import DistProfiler, DistProfilerExtension, GPUMemoryLogger, ProfilerConfig, log_gpu_memory_usage, simple_timer
 from verl.utils.debug.performance import reduce_timing
@@ -403,6 +403,8 @@ class ActorRolloutRefWorker(MegatronWorker, DistProfilerExtension):
                 log_gpu_memory_usage("After offload ref params during init", logger=logger)
 
         if self._is_actor:
+            actor_optim_config = omega_conf_to_dataclass(self.config.actor.optim, OptimConfig)
+
             self.flops_counter = FlopsCounter(self.actor_model_config)
             self.checkpoint_mananager = MegatronCheckpointManager(
                 config=self.config,
@@ -417,7 +419,7 @@ class ActorRolloutRefWorker(MegatronWorker, DistProfilerExtension):
                 optimizer=self.actor_optimizer,
                 optimizer_scheduler=self.actor_optimizer_scheduler,
                 use_distributed_optimizer=self.config.actor.megatron.use_distributed_optimizer,
-                use_checkpoint_opt_param_scheduler=self.config.actor.optim.use_checkpoint_opt_param_scheduler,
+                use_checkpoint_opt_param_scheduler=actor_optim_config.use_checkpoint_opt_param_scheduler,
                 checkpoint_contents=self.config.actor.checkpoint,
             )
         get_torch_device().empty_cache()
@@ -754,6 +756,8 @@ class CriticWorker(MegatronWorker, DistProfilerExtension):
             critic_optimizer_config=critic_optimizer_config,
         )
         self.flops_counter = FlopsCounter(self.critic_model_config)
+        critic_optim_config = omega_conf_to_dataclass(self.config.optim, OptimConfig)
+
         self.checkpoint_mananager = MegatronCheckpointManager(
             config=self.config,
             model_config=self.critic_model_config,
@@ -767,7 +771,7 @@ class CriticWorker(MegatronWorker, DistProfilerExtension):
             optimizer=self.critic_optimizer,
             optimizer_scheduler=self.critic_optimizer_scheduler,
             use_distributed_optimizer=self.config.megatron.use_distributed_optimizer,
-            use_checkpoint_opt_param_scheduler=self.config.optim.use_checkpoint_opt_param_scheduler,
+            use_checkpoint_opt_param_scheduler=critic_optim_config.use_checkpoint_opt_param_scheduler,
             checkpoint_contents=self.config.checkpoint,
         )
 

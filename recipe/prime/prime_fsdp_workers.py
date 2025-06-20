@@ -23,7 +23,7 @@ from verl import DataProto
 from verl.models.transformers.monkey_patch import apply_monkey_patch
 from verl.single_controller.base import Worker
 from verl.single_controller.base.decorator import Dispatch, register
-from verl.utils import hf_tokenizer
+from verl.utils import OptimConfig, hf_tokenizer, omega_conf_to_dataclass
 from verl.utils.checkpoint.fsdp_checkpoint_manager import FSDPCheckpointManager
 from verl.utils.debug import log_gpu_memory_usage
 from verl.utils.device import get_device_id, get_device_name, get_nccl_backend
@@ -216,18 +216,20 @@ class PRIMERewardModelWorker(Worker):
             cpu_offload=None,
         )
 
+        # Convert optim config to dataclass
+        optim_config = omega_conf_to_dataclass(config.model.optim, OptimConfig)
+
         reward_optimizer = optim.AdamW(
             reward_module.parameters(),
-            lr=config.model.optim.lr,
-            betas=config.model.optim.get("betas", (0.9, 0.999)),
-            weight_decay=config.model.optim.get("weight_decay", 1e-2),
+            lr=optim_config.lr,
+            betas=optim_config.betas,
+            weight_decay=optim_config.weight_decay,
         )
 
-        total_steps = config.model.optim.get("total_training_steps", 0)
-        num_warmup_steps = int(config.model.optim.get("lr_warmup_steps", -1))
+        total_steps = optim_config.total_training_steps
+        num_warmup_steps = optim_config.lr_warmup_steps
         if num_warmup_steps < 0:
-            num_warmup_steps_ratio = config.model.optim.get("lr_warmup_steps_ratio", 0.0)
-            num_warmup_steps = int(num_warmup_steps_ratio * total_steps)
+            num_warmup_steps = int(optim_config.lr_warmup_steps_ratio * total_steps)
 
         print(f"Total steps: {total_steps}, num_warmup_steps: {num_warmup_steps}")
 

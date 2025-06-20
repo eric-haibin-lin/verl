@@ -37,6 +37,7 @@ from verl.single_controller.base.decorator import Dispatch, register
 from verl.single_controller.base.megatron.worker import MegatronWorker
 from verl.single_controller.ray import RayClassWithInitArgs, RayResourcePool
 from verl.single_controller.ray.megatron import NVMegatronRayWorkerGroup
+from verl.utils import OptimConfig, omega_conf_to_dataclass
 from verl.utils.megatron.optimizer import get_megatron_optimizer
 from verl.utils.megatron_utils import get_model, init_megatron_optim_config, mcore_model_parallel_config
 
@@ -98,7 +99,8 @@ class Trainer(MegatronWorker):
         )
         actor_module = nn.ModuleList(actor_module)
 
-        optim_config = OmegaConf.create({"lr": 1e-6, "clip_grad": 1.0})
+        optim_config_dict = OmegaConf.create({"lr": 1e-6, "clip_grad": 1.0})
+        optim_config = omega_conf_to_dataclass(optim_config_dict, OptimConfig)
 
         optim_config = init_megatron_optim_config(optim_config)
         self.optimizer_config = optim_config

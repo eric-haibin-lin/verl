@@ -25,6 +25,7 @@ from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 
 import verl.utils.torch_functional as verl_F
 from verl import DataProto
+from verl.utils import OptimConfig, omega_conf_to_dataclass
 from verl.utils.device import get_device_name
 from verl.utils.py_functional import append_to_dict
 from verl.utils.seqlen_balancing import get_reverse_idx, rearrange_micro_batches
@@ -200,12 +201,14 @@ class DataParallelPRIMERewardModel:
         return token_level_score, q
 
     def _optimizer_step(self):
-        assert self.config.model.optim.grad_clip is not None
+        # Convert optim config to dataclass
+        optim_config = omega_conf_to_dataclass(self.config.model.optim, OptimConfig)
+        assert optim_config.grad_clip is not None
 
         if isinstance(self.reward_module, FSDP):
-            grad_norm = self.reward_module.clip_grad_norm_(self.config.model.optim.grad_clip)
+            grad_norm = self.reward_module.clip_grad_norm_(optim_config.grad_clip)
         else:
-            grad_norm = torch.nn.utils.clip_grad_norm_(self.reward_module.parameters(), max_norm=self.config.model.optim.grad_clip)
+            grad_norm = torch.nn.utils.clip_grad_norm_(self.reward_module.parameters(), max_norm=optim_config.grad_clip)
         self.reward_optimizer.step()
         return grad_norm
 

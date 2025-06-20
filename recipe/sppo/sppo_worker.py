@@ -19,6 +19,7 @@ import os
 from omegaconf import open_dict
 
 from verl.single_controller.base.decorator import Dispatch, register
+from verl.utils import OptimConfig, omega_conf_to_dataclass
 from verl.utils.checkpoint.fsdp_checkpoint_manager import FSDPCheckpointManager
 from verl.utils.debug import log_gpu_memory_usage
 from verl.utils.flops_counter import FlopsCounter
@@ -53,7 +54,7 @@ class SPPOActorRolloutRefWorker(ActorRolloutRefWorker):
         if self._is_actor or self._is_rollout:
             # we need the model for actor and rollout
             if self._is_actor:
-                optim_config = self.config.actor.optim
+                optim_config = omega_conf_to_dataclass(self.config.actor.optim, OptimConfig)
                 fsdp_config = self.config.actor.fsdp_config
             else:
                 optim_config = None

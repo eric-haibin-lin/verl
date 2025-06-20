@@ -38,7 +38,7 @@ from verl import DataProto
 from verl.models.transformers.monkey_patch import apply_monkey_patch
 from verl.single_controller.base import Worker
 from verl.single_controller.base.decorator import Dispatch, register
-from verl.utils import hf_processor, hf_tokenizer, omega_conf_to_dataclass
+from verl.utils import OptimConfig, hf_processor, hf_tokenizer, omega_conf_to_dataclass
 from verl.utils.activation_offload import enable_activation_offloading
 from verl.utils.checkpoint.fsdp_checkpoint_manager import FSDPCheckpointManager
 from verl.utils.debug import DistProfiler, DistProfilerExtension, ProfilerConfig, log_gpu_memory_usage, simple_timer
@@ -361,18 +361,17 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
             actor_optimizer = optim.AdamW(
                 actor_module_fsdp.parameters(),
                 lr=optim_config.lr,
-                betas=optim_config.get("betas", (0.9, 0.999)),
-                weight_decay=optim_config.get("weight_decay", 1e-2),
+                betas=tuple(optim_config.betas),
+                weight_decay=optim_config.weight_decay,
             )
 
-            total_steps = optim_config.get("total_training_steps", 0)
-            num_warmup_steps = int(optim_config.get("lr_warmup_steps", -1))
-            warmup_style = optim_config.get("warmup_style", "constant")
-            min_lr_ratio = optim_config.get("min_lr_ratio", 0.0)
-            num_cycles = optim_config.get("num_cycles", 0.5)
+            total_steps = optim_config.total_training_steps
+            num_warmup_steps = optim_config.lr_warmup_steps
+            warmup_style = optim_config.warmup_style
+            min_lr_ratio = optim_config.min_lr_ratio
+            num_cycles = optim_config.num_cycles
             if num_warmup_steps < 0:
-                num_warmup_steps_ratio = optim_config.get("lr_warmup_steps_ratio", 0.0)
-                num_warmup_steps = int(num_warmup_steps_ratio * total_steps)
+                num_warmup_steps = int(optim_config.lr_warmup_steps_ratio * total_steps)
 
             if self.rank == 0:
                 print(f"Total steps: {total_steps}, num_warmup_steps: {num_warmup_steps}")
@@ -1009,19 +1008,21 @@ class CriticWorker(Worker, DistProfilerExtension):
 
         log_gpu_memory_usage("After critic FSDP", logger=None)
 
+        # Convert optim config to dataclass
+        optim_config = omega_conf_to_dataclass(config.optim, OptimConfig)
+
         critic_optimizer = optim.AdamW(
             critic_module.parameters(),
-            lr=config.optim.lr,
-            betas=config.optim.get("betas", (0.9, 0.999)),
-            weight_decay=config.optim.get("weight_decay", 1e-2),
+            lr=optim_config.lr,
+            betas=tuple(optim_config.betas),
+            weight_decay=optim_config.weight_decay,
         )
 
-        total_steps = config.optim.get("total_training_steps", 0)
-        num_warmup_steps = int(config.optim.get("lr_warmup_steps", -1))
-        warmup_style = config.optim.get("warmup_style", "constant")
+        total_steps = optim_config.total_training_steps
+        num_warmup_steps = optim_config.lr_warmup_steps
+        warmup_style = optim_config.warmup_style
         if num_warmup_steps < 0:
-            num_warmup_steps_ratio = config.optim.get("lr_warmup_steps_ratio", 0.0)
-            num_warmup_steps = int(num_warmup_steps_ratio * total_steps)
+            num_warmup_steps = int(optim_config.lr_warmup_steps_ratio * total_steps)
 
         if self.rank == 0:
             print(f"Total steps: {total_steps}, num_warmup_steps: {num_warmup_steps}")

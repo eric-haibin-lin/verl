@@ -15,9 +15,11 @@
 import unittest
 from dataclasses import dataclass
 
+import torch
+import torch.optim as optim
 from omegaconf import OmegaConf
 
-from verl.utils import omega_conf_to_dataclass
+from verl.utils import OptimConfig, omega_conf_to_dataclass
 
 
 @dataclass
@@ -65,6 +67,39 @@ class TestConfigOnCPU(unittest.TestCase):
         self.assertEqual(cfg.model.activation, "relu")
         assert isinstance(cfg, TestTrainConfig)
         assert isinstance(cfg.model, TestDataclass)
+
+    def test_optim_config_dataclass(self):
+        """Test OptimConfig dataclass conversion and PyTorch optimizer creation."""
+        optim_config_dict = {
+            "lr": 1e-5,
+            "lr_warmup_steps": 100,
+            "warmup_style": "cosine",
+            "weight_decay": 0.01,
+            "betas": (0.9, 0.999),
+            "clip_grad": 1.0,
+            "lr_scheduler": "cosine",
+            "warmup_steps_ratio": 0.1,
+            "total_training_steps": 1000,
+            "lr_warmup_steps_ratio": 0.1,
+            "min_lr_ratio": 0.1,
+            "num_cycles": 0.5,
+        }
+
+        omega_config = OmegaConf.create(optim_config_dict)
+        optim_config = omega_conf_to_dataclass(omega_config, OptimConfig)
+
+        self.assertEqual(optim_config.lr, 1e-5)
+        self.assertEqual(optim_config.lr_warmup_steps, 100)
+        self.assertEqual(optim_config.warmup_style, "cosine")
+        self.assertEqual(optim_config.weight_decay, 0.01)
+        assert isinstance(optim_config, OptimConfig)
+
+        model = torch.nn.Linear(10, 1)
+        optimizer = optim.AdamW(model.parameters(), lr=optim_config.lr, weight_decay=optim_config.weight_decay, betas=tuple(optim_config.betas))
+
+        assert isinstance(optimizer, torch.optim.AdamW)
+        self.assertEqual(optimizer.param_groups[0]["lr"], 1e-5)
+        self.assertEqual(optimizer.param_groups[0]["weight_decay"], 0.01)
 
 
 if __name__ == "__main__":

@@ -41,6 +41,7 @@ from tqdm import tqdm
 from transformers import AutoConfig, AutoModelForCausalLM, PreTrainedModel
 
 import verl.utils.hdfs_io as hdfs_io
+from verl.utils import OptimConfig, hf_tokenizer, omega_conf_to_dataclass
 from verl.utils.dataset import SFTDataset
 from verl.utils.dataset.multiturn_sft_dataset import MultiTurnSFTDataset
 from verl.utils.debug import log_gpu_memory_usage
@@ -270,11 +271,14 @@ class FSDPSFTTrainer:
 
         log_gpu_memory_usage("After FSDP wrapping", logger=logger)
 
+        # Convert optim config to dataclass
+        optim_config = omega_conf_to_dataclass(self.config.optim, OptimConfig)
+
         self.optimizer = optim.AdamW(
             self.fsdp_model.parameters(),
-            lr=self.config.optim.lr,
-            betas=self.config.optim.betas,
-            weight_decay=self.config.optim.weight_decay,
+            lr=optim_config.lr,
+            betas=optim_config.betas,
+            weight_decay=optim_config.weight_decay,
         )
 
         log_gpu_memory_usage("After initialize optimizer", logger=logger)
@@ -285,14 +289,14 @@ class FSDPSFTTrainer:
         if self.device_mesh.get_rank() == 0:
             print(f"Number of steps/epoch {self.steps_per_epoch}, number of epochs {self.config.trainer.total_epochs}, total number of steps {self.total_steps}")
 
-        num_warmup_steps = int(self.total_steps * self.config.optim.warmup_steps_ratio)
+        num_warmup_steps = int(self.total_steps * optim_config.warmup_steps_ratio)
 
-        if not hasattr(self.config.optim, "lr_scheduler") or self.config.optim.lr_scheduler == "cosine":
+        if optim_config.lr_scheduler == "cosine":
             self.lr_scheduler = get_cosine_schedule_with_warmup(optimizer=self.optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=self.total_steps)
-        elif self.config.optim.lr_scheduler == "wsd":
+        elif optim_config.lr_scheduler == "wsd":
             self.lr_scheduler = get_wsd_schedule_with_warmup(optimizer=self.optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=self.total_steps)
         else:
-            raise ValueError(f"Unknown lr scheduler: {self.config.optim.lr_scheduler}")
+            raise ValueError(f"Unknown lr scheduler: {optim_config.lr_scheduler}")
 
     def _compute_loss_and_backward(self, batch, do_backward=True):
         """Compute loss with optional sequence parallelism and remove padding features"""
@@ -397,10 +401,13 @@ class FSDPSFTTrainer:
             loss = self._compute_loss_and_backward(batch=micro_batch) / n_micro_batches
             step_loss += loss.item()
 
+        # Convert optim config to dataclass for gradient clipping
+        optim_config = omega_conf_to_dataclass(self.config.optim, OptimConfig)
+
         if self.config.model.strategy == "fsdp":
-            grad_norm = self.fsdp_model.clip_grad_norm_(max_norm=self.config.optim.clip_grad)
+            grad_norm = self.fsdp_model.clip_grad_norm_(max_norm=optim_config.clip_grad)
         elif self.config.model.strategy == "fsdp2":
-            grad_norm = fsdp2_clip_grad_norm_(self.fsdp_model.parameters(), max_norm=self.config.optim.clip_grad)
+            grad_norm = fsdp2_clip_grad_norm_(self.fsdp_model.parameters(), max_norm=optim_config.clip_grad)
         else:
             raise NotImplementedError(f"not implement {self.config.model.strategy}")
 
@@ -554,7 +561,6 @@ def run_sft(config):
     dp_size = world_size // config.ulysses_sequence_parallel_size
     ulysses_device_mesh = init_device_mesh(device_type=device_name, mesh_shape=(dp_size, config.ulysses_sequence_parallel_size), mesh_dim_names=("dp", "sp"))
     # build tokenizer and datasets first
-    from verl.utils import hf_tokenizer
 
     local_model_path = copy_to_local(src=config.model.partial_pretrain, verbose=True)
     tokenizer = hf_tokenizer(local_model_path, trust_remote_code=config.model.trust_remote_code)
