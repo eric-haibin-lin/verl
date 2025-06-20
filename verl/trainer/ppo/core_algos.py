@@ -180,17 +180,23 @@ def compute_gae_advantage_return(
 
     """
     with torch.no_grad():
-        lastgaelam = 0
-        advantages_reversed = []
         gen_len = token_level_rewards.shape[-1]
-
-        for t in reversed(range(gen_len)):
-            nextvalues = values[:, t + 1] if t < gen_len - 1 else 0.0
-            delta = token_level_rewards[:, t] + gamma * nextvalues - values[:, t]
-            lastgaelam = delta + gamma * lam * lastgaelam
-            advantages_reversed.append(lastgaelam)
-        advantages = torch.stack(advantages_reversed[::-1], dim=1)
-
+        
+        next_values = torch.cat([values[:, 1:], torch.zeros_like(values[:, :1])], dim=1)
+        
+        deltas = token_level_rewards + gamma * next_values - values
+        
+        indices = torch.arange(gen_len, device=deltas.device, dtype=torch.long)
+        i_indices = indices.unsqueeze(1)
+        j_indices = indices.unsqueeze(0)
+        
+        mask = j_indices >= i_indices
+        
+        discount_powers = j_indices - i_indices
+        discount_matrix = torch.pow(gamma * lam, discount_powers.float()) * mask.float()
+        
+        advantages = torch.matmul(deltas.unsqueeze(1), discount_matrix.T).squeeze(1)
+        
         returns = advantages + values
         advantages = verl_F.masked_whiten(advantages, response_mask)
     return advantages, returns
