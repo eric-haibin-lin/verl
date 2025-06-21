@@ -19,7 +19,8 @@ import torch
 import torch.optim as optim
 from omegaconf import OmegaConf
 
-from verl.utils import OptimConfig, omega_conf_to_dataclass
+from verl.trainer.optimizer import OptimConfig
+from verl.utils import omega_conf_to_dataclass
 
 
 @dataclass

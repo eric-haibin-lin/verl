@@ -19,7 +19,8 @@ import os
 from omegaconf import open_dict
 
 from verl.single_controller.base.decorator import Dispatch, register
-from verl.utils import OptimConfig, omega_conf_to_dataclass
+from verl.trainer.optimizer import OptimConfig
+from verl.utils import omega_conf_to_dataclass
 from verl.utils.checkpoint.fsdp_checkpoint_manager import FSDPCheckpointManager
 from verl.utils.debug import log_gpu_memory_usage
 from verl.utils.flops_counter import FlopsCounter

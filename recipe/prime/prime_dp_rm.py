@@ -25,7 +25,8 @@ from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 
 import verl.utils.torch_functional as verl_F
 from verl import DataProto
-from verl.utils import OptimConfig, omega_conf_to_dataclass
+from verl.trainer.optimizer import OptimConfig
+from verl.utils import omega_conf_to_dataclass
 from verl.utils.device import get_device_name
 from verl.utils.py_functional import append_to_dict
 from verl.utils.seqlen_balancing import get_reverse_idx, rearrange_micro_batches

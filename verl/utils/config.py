@@ -12,45 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass, is_dataclass
+from dataclasses import is_dataclass
 from typing import Any, Dict, Type, Union
 
 from omegaconf import DictConfig, OmegaConf
 
-__all__ = ["omega_conf_to_dataclass", "OptimConfig"]
-
-
-@dataclass
-class OptimConfig:
-    """Optimizer configuration dataclass."""
-
-    lr: float = 1e-6
-
-    lr_warmup_steps: int = -1
-
-    lr_warmup_steps_ratio: float = 0.0
-
-    min_lr_ratio: float = 0.0
-
-    num_cycles: float = 0.5
-
-    warmup_style: str = "constant"
-
-    total_training_steps: int = -1
-
-    weight_decay: float = 0.01
-
-    use_checkpoint_opt_param_scheduler: bool = False
-
-    betas: tuple = (0.9, 0.999)
-
-    warmup_steps_ratio: float = 0.0
-
-    lr_scheduler: str = "cosine"
-
-    clip_grad: float = 1.0
-
-    grad_clip: float = 1.0
+__all__ = ["omega_conf_to_dataclass"]
 
 
 def omega_conf_to_dataclass(config: Union[DictConfig, dict], dataclass_type: Type[Any]) -> Any:

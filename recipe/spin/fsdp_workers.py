@@ -29,7 +29,8 @@ import verl.utils.torch_functional as verl_F
 from verl import DataProto
 from verl.single_controller.base import Worker
 from verl.single_controller.base.decorator import Dispatch, register
-from verl.utils import OptimConfig, hf_tokenizer, omega_conf_to_dataclass
+from verl.trainer.optimizer import OptimConfig
+from verl.utils import hf_tokenizer, omega_conf_to_dataclass
 from verl.utils.checkpoint.fsdp_checkpoint_manager import FSDPCheckpointManager
 from verl.utils.debug import log_gpu_memory_usage
 from verl.utils.device import get_device_id, get_device_name, get_nccl_backend, get_torch_device

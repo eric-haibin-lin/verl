@@ -41,7 +41,8 @@ from tqdm import tqdm
 from transformers import AutoConfig, AutoModelForCausalLM, PreTrainedModel
 
 import verl.utils.hdfs_io as hdfs_io
-from verl.utils import OptimConfig, hf_tokenizer, omega_conf_to_dataclass
+from verl.trainer.optimizer import OptimConfig
+from verl.utils import hf_tokenizer, omega_conf_to_dataclass
 from verl.utils.dataset import SFTDataset
 from verl.utils.dataset.multiturn_sft_dataset import MultiTurnSFTDataset
 from verl.utils.debug import log_gpu_memory_usage
