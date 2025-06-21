@@ -22,8 +22,10 @@ import hydra
 import ray
 from omegaconf import OmegaConf
 
+from verl.trainer.config.algo_config import AlgoConfig
 from verl.trainer.ppo.ray_trainer import RayPPOTrainer
 from verl.trainer.ppo.reward import load_reward_manager
+from verl.utils.config import omega_conf_to_dataclass
 
 
 @hydra.main(config_path="config", config_name="ppo_trainer", version_base=None)
@@ -152,7 +154,8 @@ class TaskRunner:
             mapping[Role.RewardModel] = global_pool_id
 
         # Add a reference policy worker if KL loss or KL reward is used.
-        if config.algorithm.use_kl_in_reward or config.actor_rollout_ref.actor.use_kl_loss:
+        algo_config = omega_conf_to_dataclass(config.algorithm, AlgoConfig)
+        if algo_config.use_kl_in_reward or config.actor_rollout_ref.actor.use_kl_loss:
             role_worker_mapping[Role.RefPolicy] = ray.remote(ActorRolloutRefWorker)
             mapping[Role.RefPolicy] = global_pool_id
 
