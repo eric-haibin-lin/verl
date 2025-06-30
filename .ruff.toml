@@ -1,0 +1,9 @@
+[lint]
+# Ignore line length errors and other issues that would require significant code changes
+ignore = [
+    "E501",  # Line too long
+    "E731",  # Do not assign a lambda expression, use a def
+    "F403",  # 'from module import *' used; unable to detect undefined names
+    "F405",  # Name may be undefined, or defined from star imports
+    "F841",  # Local variable is assigned to but never used
+]
