@@ -99,10 +99,16 @@ class MegatronVLLMShardingManager(BaseShardingManager):
         # For AsyncLLM, inference_engine and model_runner are defer initialized in vLLMAsyncRollout.load_model
         if "vllm_v_0_6_3" in str(type(self.inference_engine)) or "vllm_v_0_5_4" in str(type(self.inference_engine)):
             # vLLM <= v0.6.3
-            self.model_runner = self.inference_engine.llm_engine.model_executor.worker.model_runner if self.inference_engine else None
+            self.model_runner = (
+                self.inference_engine.llm_engine.model_executor.worker.model_runner if self.inference_engine else None
+            )
         else:
             # vLLM > v0.6.3
-            self.model_runner = self.inference_engine.llm_engine.model_executor.driver_worker.worker.model_runner if self.inference_engine else None
+            self.model_runner = (
+                self.inference_engine.llm_engine.model_executor.driver_worker.worker.model_runner
+                if self.inference_engine
+                else None
+            )
 
         self.model_config = model_config
         self.transformer_config = transformer_config
@@ -149,7 +155,14 @@ class MegatronVLLMShardingManager(BaseShardingManager):
                 load_megatron_model_to_gpu(self.actor_module)
 
             if customized_vllm:
-                per_tensor_param = per_tensor_generator(self.actor_module, self.model_config, self.weight_converter, self.transformer_config, self.layer_name_mapping, convert_qkv_gate_up_by_simple_split=False)
+                per_tensor_param = per_tensor_generator(
+                    self.actor_module,
+                    self.model_config,
+                    self.weight_converter,
+                    self.transformer_config,
+                    self.layer_name_mapping,
+                    convert_qkv_gate_up_by_simple_split=False,
+                )
                 self.inference_engine.sync_model_weights(per_tensor_param, load_format="megatron")
             else:
                 # > 0.7.2
@@ -175,7 +188,10 @@ class MegatronVLLMShardingManager(BaseShardingManager):
                 offload_megatron_model_to_cpu(self.actor_module)
             get_torch_device().empty_cache()
 
-            if self.rollout_config.free_cache_engine and "tags" in inspect.signature(self.inference_engine.wake_up).parameters:
+            if (
+                self.rollout_config.free_cache_engine
+                and "tags" in inspect.signature(self.inference_engine.wake_up).parameters
+            ):
                 self.inference_engine.wake_up(tags=["kv_cache"])
 
             # important: need to manually set the random states of each tp to be identical.

@@ -182,7 +182,10 @@ async def perf_without_chat_scheduler(backend, n_gpus_per_node):
         completions = await asyncio.gather(*tasks)
         messages = [completion.choices[0].message.content for completion in completions]
         t_end = time.time()
-        print(f"[DEBUG] backend: {backend}, n_gpus_per_node: {n_gpus_per_node}, use_chat_scheduler: False, batch_size: {len(messages)}, step: {step}, time: {t_end - t_start:.2f} secs")
+        print(
+            f"[DEBUG] backend: {backend}, n_gpus_per_node: {n_gpus_per_node}, use_chat_scheduler: False, "
+            f"batch_size: {len(messages)}, step: {step}, time: {t_end - t_start:.2f} secs"
+        )
         break
 
     ray.shutdown()
@@ -199,7 +202,10 @@ def perf_with_chat_scheduler(backend, n_gpus_per_node):
         t_start = time.time()
         gen_batch = server.generate_sequences(batch)
         t_end = time.time()
-        print(f"[DEBUG] backend: {backend}, n_gpus_per_node: {n_gpus_per_node}, use_chat_scheduler: True, batch_size: {len(gen_batch)}, step: {step}, time: {t_end - t_start:.2f} secs")
+        print(
+            f"[DEBUG] backend: {backend}, n_gpus_per_node: {n_gpus_per_node}, use_chat_scheduler: True, "
+            f"batch_size: {len(gen_batch)}, step: {step}, time: {t_end - t_start:.2f} secs"
+        )
         break
 
     ray.shutdown()
