@@ -301,12 +301,15 @@ def math_equal(
             try:
                 pred_matrix = eval(prediction)
                 # ref_matrix_items = reference.split()[1:-1:2]
-                ref_matrix_items = (
-                    reference.lstrip("\\begin{pmatrix}")
-                    .lstrip("\begin{pmatrix}")
-                    .rstrip("\\end{pmatrix}")
-                    .rstrip("\end{pmatrix}")
-                )  # noqa: B005
+                ref_matrix_items = reference
+                if ref_matrix_items.startswith("\\begin{pmatrix}"):
+                    ref_matrix_items = ref_matrix_items[len("\\begin{pmatrix}") :]
+                if ref_matrix_items.startswith("\begin{pmatrix}"):
+                    ref_matrix_items = ref_matrix_items[len("\begin{pmatrix}") :]
+                if ref_matrix_items.endswith("\\end{pmatrix}"):
+                    ref_matrix_items = ref_matrix_items[: -len("\\end{pmatrix}")]
+                if ref_matrix_items.endswith("\end{pmatrix}"):
+                    ref_matrix_items = ref_matrix_items[: -len("\end{pmatrix}")]
                 ref_matrix_items = ref_matrix_items.split("\\")
                 ref_matrix_items = [row.split("&") if "&" in row else row for row in ref_matrix_items]
                 if len(pred_matrix) == len(ref_matrix_items) and all(
