@@ -60,6 +60,8 @@ ignore = [
     "UP007",
     # `.log()` statement uses f-string
     "G004",
+    # Line too long
+    "E501",
 ]
 
 # -------------------------------

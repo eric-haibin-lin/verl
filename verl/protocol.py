@@ -51,7 +51,10 @@ class _DataProtoConfigMeta(type):
 
     @property
     def auto_padding(cls):
-        enabled_by_env = os.getenv("VERL_AUTO_PADDING", "FALSE").upper() in ["TRUE", "1"]
+        enabled_by_env = os.getenv("VERL_AUTO_PADDING", "FALSE").upper() in [
+            "TRUE",
+            "1",
+        ]
         return enabled_by_env or cls._config.get(cls.auto_padding_key, False)
 
     @auto_padding.setter
@@ -258,7 +261,11 @@ class DataProto:
         elif isinstance(item, (int, np.integer)):
             tensor_data = self.batch[item] if self.batch is not None else None
             non_tensor_data = {key: val[item] for key, val in self.non_tensor_batch.items()}
-            return DataProtoItem(batch=tensor_data, non_tensor_batch=non_tensor_data, meta_info=self.meta_info)
+            return DataProtoItem(
+                batch=tensor_data,
+                non_tensor_batch=non_tensor_data,
+                meta_info=self.meta_info,
+            )
 
         # # Case 4: Unsupported type
         else:
@@ -335,14 +342,20 @@ class DataProto:
             batch_size = self.batch.batch_size[0]
             for key, val in self.non_tensor_batch.items():
                 assert isinstance(val, np.ndarray), (
-                    f"data in the non_tensor_batch must be a numpy.array with dtype=object, but for {key=}, got {type(val)=}"
+                    f"data in the non_tensor_batch must be a numpy.array with dtype=object, but for {key=}, got"
+                    " {type(val)=}"
                 )
                 assert val.shape[0] == batch_size, (
                     f"key {key} length {len(val)} is not equal to batch size {batch_size}"
                 )
 
     @classmethod
-    def from_single_dict(cls, data: Dict[str, Union[torch.Tensor, np.ndarray]], meta_info=None, auto_padding=False):
+    def from_single_dict(
+        cls,
+        data: Dict[str, Union[torch.Tensor, np.ndarray]],
+        meta_info=None,
+        auto_padding=False,
+    ):
         """Create a DataProto from a dict of tensors and non_tensors"""
         tensors = {}
         non_tensors = {}
@@ -355,7 +368,12 @@ class DataProto:
             else:
                 raise ValueError(f"Unsupported type in data {type(val)}")
 
-        return cls.from_dict(tensors=tensors, non_tensors=non_tensors, meta_info=meta_info, auto_padding=auto_padding)
+        return cls.from_dict(
+            tensors=tensors,
+            non_tensors=non_tensors,
+            meta_info=meta_info,
+            auto_padding=auto_padding,
+        )
 
     @classmethod
     def from_dict(
@@ -386,15 +404,14 @@ class DataProto:
 
         # get and check batch size
         batch_size = None
-        pivot_key = None
         for key, tensor in tensors.items():
             if batch_size is None:
                 batch_size = tensor.shape[:num_batch_dims]
-                pivot_key = key
             else:
                 current_batch = tensor.shape[:num_batch_dims]
                 assert batch_size == current_batch, (
-                    f"Not all the tensor in tensors have the same batch size with batch_dims={num_batch_dims}. Got {pivot_key} has {batch_size}, {key} has {current_batch}"
+                    f"Not all the tensor in tensors have the same batch size with batch_dims={num_batch_dims}. Got"
+                    f" first tensor has {batch_size}, {key} has {current_batch}"
                 )
 
         for key, val in non_tensors.items():
@@ -420,7 +437,13 @@ class DataProto:
             self.batch = self.batch.to(device)
         return self
 
-    def select(self, batch_keys=None, non_tensor_batch_keys=None, meta_info_keys=None, deepcopy=False) -> "DataProto":
+    def select(
+        self,
+        batch_keys=None,
+        non_tensor_batch_keys=None,
+        meta_info_keys=None,
+        deepcopy=False,
+    ) -> "DataProto":
         """Select a subset of the DataProto via batch_keys and meta_info_keys
 
         Args:
@@ -493,7 +516,11 @@ class DataProto:
         for key, val in self.non_tensor_batch.items():
             selected_non_tensor[key] = val[idxs_np]
 
-        return type(self)(batch=selected_batch, non_tensor_batch=selected_non_tensor, meta_info=self.meta_info)
+        return type(self)(
+            batch=selected_batch,
+            non_tensor_batch=selected_non_tensor,
+            meta_info=self.meta_info,
+        )
 
     def slice(self, start=None, end=None, step=None):
         """
@@ -539,7 +566,11 @@ class DataProto:
             sliced_non_tensor[key] = val[slice_obj]
 
         # Return a new DataProto object
-        return type(self)(batch=sliced_batch, non_tensor_batch=sliced_non_tensor, meta_info=self.meta_info)
+        return type(self)(
+            batch=sliced_batch,
+            non_tensor_batch=sliced_non_tensor,
+            meta_info=self.meta_info,
+        )
 
     def pop(self, batch_keys=None, non_tensor_batch_keys=None, meta_info_keys=None) -> "DataProto":
         """Pop a subset of the DataProto via `batch_keys` and `meta_info_keys`
@@ -646,7 +677,11 @@ class DataProto:
 
         assert isinstance(dataloader_kwargs, Dict)
         train_dataloader = DataLoader(
-            dataset=self, batch_size=mini_batch_size, collate_fn=collate_fn, generator=generator, **dataloader_kwargs
+            dataset=self,
+            batch_size=mini_batch_size,
+            collate_fn=collate_fn,
+            generator=generator,
+            **dataloader_kwargs,
         )
 
         def get_data():
@@ -717,7 +752,11 @@ class DataProto:
         output = []
         for i in range(chunks):
             output.append(
-                type(self)(batch=batch_lst[i], non_tensor_batch=non_tensor_batch_lst[i], meta_info=self.meta_info)
+                type(self)(
+                    batch=batch_lst[i],
+                    non_tensor_batch=non_tensor_batch_lst[i],
+                    meta_info=self.meta_info,
+                )
             )
 
         return output
@@ -743,7 +782,11 @@ class DataProto:
             non_tensor_batch[key] = np.concatenate(val, axis=0)
 
         cls = type(data[0]) if len(data) > 0 else DataProto
-        return cls(batch=new_batch, non_tensor_batch=non_tensor_batch, meta_info=data[0].meta_info)
+        return cls(
+            batch=new_batch,
+            non_tensor_batch=non_tensor_batch,
+            meta_info=data[0].meta_info,
+        )
 
     def reorder(self, indices):
         """
@@ -815,7 +858,9 @@ class DataProto:
                     unfolded_batch[key] = torch.repeat_interleave(self.batch[key], n_split, dim=0)
             # locate the `unfolded_batch` as a TensorDict on the same device as the original batch
             unfolded_batch = TensorDict(
-                source=unfolded_batch, batch_size=(self.batch.batch_size[0] * n_split,), device=self.batch.device
+                source=unfolded_batch,
+                batch_size=(self.batch.batch_size[0] * n_split,),
+                device=self.batch.device,
             )
         else:
             unfolded_batch = None
@@ -918,7 +963,9 @@ class DataProtoFuture:
                 return x.chunk(chunks=chunks)[i]
 
             arg_future = DataProtoFuture(
-                collect_fn=self.collect_fn, dispatch_fn=partial(dispatch_fn, i=i, chunks=chunks), futures=self.futures
+                collect_fn=self.collect_fn,
+                dispatch_fn=partial(dispatch_fn, i=i, chunks=chunks),
+                futures=self.futures,
             )
             arg_future_lst.append(arg_future)
         return arg_future_lst
