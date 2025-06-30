@@ -306,7 +306,7 @@ def math_equal(
                     .lstrip("\begin{pmatrix}")
                     .rstrip("\\end{pmatrix}")
                     .rstrip("\end{pmatrix}")
-                )  # noqa: B005
+                )
                 ref_matrix_items = ref_matrix_items.split("\\")
                 ref_matrix_items = [row.split("&") if "&" in row else row for row in ref_matrix_items]
                 if len(pred_matrix) == len(ref_matrix_items) and all(
