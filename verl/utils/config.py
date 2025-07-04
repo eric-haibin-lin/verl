@@ -20,7 +20,11 @@ from omegaconf import DictConfig, OmegaConf
 __all__ = ["omega_conf_to_dataclass"]
 
 
-def omega_conf_to_dataclass(config: Union[DictConfig, dict], dataclass_type: Optional[Type[Any]] = None) -> Any:
+def omega_conf_to_dataclass(
+    config: Union[DictConfig, dict],
+    dataclass_type: Optional[Type[Any]] = None,
+    recursive: bool = False,
+) -> Any:
     """
     Convert an OmegaConf DictConfig to a dataclass.
 
@@ -28,10 +32,21 @@ def omega_conf_to_dataclass(config: Union[DictConfig, dict], dataclass_type: Opt
         config: The OmegaConf DictConfig or dict to convert.
         dataclass_type: The dataclass type to convert to. When dataclass_type is None,
             the DictConfig must contain _target_ to be instantiated via hydra.instantiate API.
+        recursive: If True, recursively process nested configs that contain _target_ fields.
 
     Returns:
         The dataclass instance.
     """
+    if recursive:
+        import copy
+
+        if isinstance(config, DictConfig):
+            config = OmegaConf.to_container(config, resolve=True)
+        config = copy.deepcopy(config)
+        config = _process_config_recursively(config)
+        if dataclass_type is None:
+            return config
+
     if dataclass_type is not None and isinstance(config, dataclass_type):
         return config
 
@@ -53,6 +68,31 @@ def omega_conf_to_dataclass(config: Union[DictConfig, dict], dataclass_type: Opt
     # now convert to `dataclass_type`
     config_object = OmegaConf.to_object(cfg_merged)
     return config_object
+
+
+def _process_config_recursively(config: Union[DictConfig, dict]) -> Union[DictConfig, dict]:
+    """
+    Recursively process a config, instantiating any nested configs that contain _target_ fields.
+
+    Args:
+        config: The config to process recursively.
+
+    Returns:
+        The processed config with _target_ fields instantiated.
+    """
+    if not isinstance(config, (dict, DictConfig)):
+        return config
+
+    for key, value in list(config.items()):
+        if isinstance(value, (dict, DictConfig)):
+            if "_target_" in value:
+                from hydra.utils import instantiate
+
+                config[key] = instantiate(value, _convert_="partial")
+            else:
+                config[key] = _process_config_recursively(value)
+
+    return config
 
 
 def update_dict_with_config(dictionary: Dict, config: DictConfig):
