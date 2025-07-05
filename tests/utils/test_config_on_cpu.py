@@ -202,6 +202,26 @@ class TestConfigOnCPU(unittest.TestCase):
 
         self.assertIsInstance(result["nested"]["profiler"], ProfilerConfig)
 
+    def test_recursive_top_level_target(self):
+        """Test recursive processing when the config itself contains _target_."""
+        config_str = """
+        _target_: verl.utils.profiler.config.ProfilerConfig
+        discrete: True
+        all_ranks: False
+        ranks: []
+        """
+        config = OmegaConf.create(config_str)
+
+        result = omega_conf_to_dataclass(config, recursive=True)
+
+        from verl.utils.profiler.config import ProfilerConfig
+
+        # The top-level config should be instantiated as a ProfilerConfig
+        self.assertIsInstance(result, ProfilerConfig)
+        self.assertEqual(result.discrete, True)
+        self.assertEqual(result.all_ranks, False)
+        self.assertEqual(result.ranks, [])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -91,6 +91,11 @@ def _process_config_recursively(config: Union[DictConfig, dict]) -> Any:
             else:
                 config[key] = _process_config_recursively(value)
 
+    if "_target_" in config:
+        from hydra.utils import instantiate
+
+        return instantiate(config, _convert_="partial")
+
     return config
 
 
