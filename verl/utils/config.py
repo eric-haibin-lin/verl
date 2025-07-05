@@ -37,15 +37,14 @@ def omega_conf_to_dataclass(
     Returns:
         The dataclass instance.
     """
-    if recursive:
+    if recursive and dataclass_type is None:
         import copy
 
         if isinstance(config, DictConfig):
             config = OmegaConf.to_container(config, resolve=True)
         config = copy.deepcopy(config)
         config = _process_config_recursively(config)
-        if dataclass_type is None:
-            return config
+        return config
 
     if dataclass_type is not None and isinstance(config, dataclass_type):
         return config
@@ -70,7 +69,7 @@ def omega_conf_to_dataclass(
     return config_object
 
 
-def _process_config_recursively(config: Union[DictConfig, dict]) -> Union[DictConfig, dict]:
+def _process_config_recursively(config: Union[DictConfig, dict]) -> Any:
     """
     Recursively process a config, instantiating any nested configs that contain _target_ fields.
 
