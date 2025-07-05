@@ -46,9 +46,7 @@ def omega_conf_to_dataclass(
         config = _process_config_recursively(config)
         return config
 
-    if dataclass_type is not None and isinstance(config, dataclass_type):
-        return config
-
+    # dataclass is inferred from _target_
     if dataclass_type is None:
         assert "_target_" in config, (
             "When dataclass_type is not provided, config must contain _target_."
@@ -57,16 +55,20 @@ def omega_conf_to_dataclass(
         from hydra.utils import instantiate
 
         return instantiate(config, _convert_="partial")
-
-    if not is_dataclass(dataclass_type):
-        raise ValueError(f"{dataclass_type} must be a dataclass")
-    cfg = OmegaConf.create(config)  # in case it's a dict
-    cfg_from_dataclass = OmegaConf.structured(dataclass_type)
-    # let cfg override the existing vals in `cfg_from_dataclass`
-    cfg_merged = OmegaConf.merge(cfg_from_dataclass, cfg)
-    # now convert to `dataclass_type`
-    config_object = OmegaConf.to_object(cfg_merged)
-    return config_object
+    else:
+        # input is a dataclass already
+        if isinstance(config, dataclass_type):
+            return config
+        # dataclass_type is given
+        if not is_dataclass(dataclass_type):
+            raise ValueError(f"{dataclass_type} must be a dataclass")
+        cfg = OmegaConf.create(config)  # in case it's a dict
+        cfg_from_dataclass = OmegaConf.structured(dataclass_type)
+        # let cfg override the existing vals in `cfg_from_dataclass`
+        cfg_merged = OmegaConf.merge(cfg_from_dataclass, cfg)
+        # now convert to `dataclass_type`
+        config_object = OmegaConf.to_object(cfg_merged)
+        return config_object
 
 
 def _process_config_recursively(config: Union[DictConfig, dict]) -> Any:
@@ -81,15 +83,14 @@ def _process_config_recursively(config: Union[DictConfig, dict]) -> Any:
     """
     if not isinstance(config, (dict, DictConfig)):
         return config
+    from hydra.utils import instantiate
+
+    # the top level config is a structured dataclass
+    if "_target_" in config:
+        return instantiate(config, _convert_="partial")
 
     for key, value in list(config.items()):
-        if isinstance(value, (dict, DictConfig)):
-            if "_target_" in value:
-                from hydra.utils import instantiate
-
-                config[key] = instantiate(value, _convert_="partial")
-            else:
-                config[key] = _process_config_recursively(value)
+        config[key] = _process_config_recursively(value)
 
     return config
 
