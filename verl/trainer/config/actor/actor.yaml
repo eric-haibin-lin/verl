@@ -56,6 +56,15 @@ policy_loss:
   # KL divergence penalty coefficient
   ppo_kl_coef: 0.1
 
+  # Whether to use CISPO loss instead of standard PPO clipping
+  use_cispo: false
+
+  # Upper bound for CISPO importance sampling weight clipping
+  cispo_clip_ratio_high: 0.2
+
+  # Lower bound for CISPO importance sampling weight clipping
+  cispo_clip_ratio_low: 0.2
+
 # Constant C in Dual-clip PPO; clips when advantage < 0 and ratio > C
 clip_ratio_c: 3.0
 

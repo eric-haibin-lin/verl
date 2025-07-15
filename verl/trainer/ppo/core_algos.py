@@ -729,9 +729,6 @@ def compute_policy_loss(
     cliprange_high=None,
     clip_ratio_c=3.0,
     loss_agg_mode: str = "token-mean",
-    use_cispo=False,
-    clip_ratio_is_high=0.45,
-    clip_ratio_is_low=1,
 ):
     """
     Compute the clipped policy objective and related metrics for PPO.
@@ -760,14 +757,6 @@ def compute_policy_loss(
             Defaults to 3.0.
         loss_agg_mode (str, optional):
             Aggregation mode for `agg_loss`. Defaults to "token-mean".
-        use_cispo (bool):
-            Whether to use the CISPO loss, see https://www.arxiv.org/pdf/2506.13585, which only constrains the gradient scale instead of clipping off tokens in PPO.
-        clip_ratio_is_high(float, optional):
-            Upper bound range for CISPO. 
-            Defaults to 0.45.
-        clip_ratio_is_low(float, optional):
-            Lower bound range for CISPO. 
-            Defaults to 1.0.
     """
     assert clip_ratio_c > 1.0, (
         "The lower bound of the clip_ratio_c for dual-clip PPO should be greater than 1.0,"
@@ -800,22 +789,6 @@ def compute_policy_loss(
     )
 
     pg_losses = torch.where(advantages < 0, clip_pg_losses2, clip_pg_losses1)
-
-    if use_cispo:
-        ratio = ratio.detach()
-        importance_sampling_weight = torch.clamp(
-            ratio,
-            max = 1 + clip_ratio_is_high,
-            min = 1 - clip_ratio_is_low
-        )
-        pos_adv_mask = (advantages > 0) & (
-            ratio > 1 + cliprange_high
-        )
-        neg_adv_mask = (advantages < 0) & (
-            ratio < 1 - cliprange_low
-        )
-        adv_mask = ~(pos_adv_mask | neg_adv_mask)
-        pg_losses = - advantages * log_prob * importance_sampling_weight * adv_mask
 
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
 
@@ -998,6 +971,66 @@ def compute_policy_loss_kl_cov(
     pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
 
     return pg_loss, torch.tensor(0.0), ppo_kl_abs, torch.tensor(0.0)
+
+
+@register_policy_loss("cispo")
+def compute_policy_loss_cispo(
+    old_log_prob: torch.Tensor,
+    log_prob: torch.Tensor,
+    advantages: torch.Tensor,
+    response_mask: torch.Tensor,
+    loss_agg_mode: str = "token-mean",
+    config: Optional[AlgoConfig] = None,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Compute the CISPO policy objective and related metrics.
+
+    CISPO (Clipped Importance Sampling Policy Optimization) clips importance sampling weights
+    instead of dropping tokens, which is beneficial for training on sparse but critical tokens
+    and long-context reasoning in RL.
+
+    Reference: https://www.arxiv.org/pdf/2506.13585
+
+    Args:
+        old_log_prob (torch.Tensor): Log-probabilities under old policy, shape (batch_size, response_length)
+        log_prob (torch.Tensor): Log-probabilities under current policy, shape (batch_size, response_length)
+        advantages (torch.Tensor): Advantage estimates, shape (batch_size, response_length)
+        response_mask (torch.Tensor): Mask for valid tokens, shape (batch_size, response_length)
+        loss_agg_mode (str): Aggregation mode for loss computation
+        config (AlgoConfig): Algorithm configuration containing CISPO parameters
+
+    Returns:
+        tuple: (pg_loss, pg_clipfrac, ppo_kl, pg_clipfrac_lower)
+    """
+    cliprange = config.clip_ratio
+    cliprange_low = config.clip_ratio_low if config.clip_ratio_low is not None else cliprange
+    cliprange_high = config.clip_ratio_high if config.clip_ratio_high is not None else cliprange
+    cispo_clip_ratio_high = (
+        config.policy_loss.cispo_clip_ratio_high if config.policy_loss.cispo_clip_ratio_high is not None else 0.2
+    )
+    cispo_clip_ratio_low = (
+        config.policy_loss.cispo_clip_ratio_low if config.policy_loss.cispo_clip_ratio_low is not None else 0.2
+    )
+
+    negative_approx_kl = log_prob - old_log_prob
+    negative_approx_kl = torch.clamp(negative_approx_kl, min=-20.0, max=20.0)
+    ratio = torch.exp(negative_approx_kl)
+    ppo_kl = verl_F.masked_mean(-negative_approx_kl, response_mask)
+
+    pg_losses1 = -advantages * ratio
+    pg_losses2 = -advantages * torch.clamp(ratio, 1 - cliprange_low, 1 + cliprange_high)
+    pg_clipfrac = verl_F.masked_mean(torch.gt(pg_losses2, pg_losses1).float(), response_mask)
+
+    ratio_detached = ratio.detach()
+    importance_sampling_weight = torch.clamp(
+        ratio_detached, min=1 - cispo_clip_ratio_low, max=1 + cispo_clip_ratio_high
+    )
+
+    pg_losses = -advantages * log_prob * importance_sampling_weight
+
+    pg_loss = agg_loss(loss_mat=pg_losses, loss_mask=response_mask, loss_agg_mode=loss_agg_mode)
+
+    return pg_loss, pg_clipfrac, ppo_kl, torch.tensor(0.0)
 
 
 def compute_entropy_loss(logits, response_mask, loss_agg_mode: str = "token-mean"):
