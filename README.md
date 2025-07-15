@@ -1,6 +1,7 @@
 <div align="center">
  👋 Hi, everyone! 
     verl is a RL training library initiated by <b>ByteDance Seed team</b> and maintained by the verl community.
+    <!-- Dummy comment for testing PR workflow -->
     <br>
     <br>
 </div>
