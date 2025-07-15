@@ -97,7 +97,7 @@ $$
 \hat{r}_{i,t}(\theta) = \text{clip}\left(r_{i,t}(\theta), 1 - \epsilon^{IS}_{low}, 1 + \epsilon^{IS}_{high}\right)
 $$
 
-- `actor_rollout_ref.actor.policy_loss.use_cispo`: Whether to use the CISPO loss
+- `actor_rollout_ref.actor.policy_loss.loss_mode`: Set to "cispo" to enable CISPO loss (other options: "vanilla", "clip-cov", "kl-cov", "gpg")
 
 - `actor_rollout_ref.actor.policy_loss.cispo_clip_ratio_high`: High bound ratio of the clipped IS in CISPO, defaults to 0.2
 
