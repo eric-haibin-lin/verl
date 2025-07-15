@@ -14,12 +14,13 @@
 # Unit Tests for `initialize_tools_from_config`
 import json
 import os
-from typing import Any, Tuple
+from typing import Any
 
 import pytest
 from transformers.utils import get_json_schema
 
-from verl.tools.base_tool import BaseTool, OpenAIFunctionToolSchema, initialize_tools_from_config
+from verl.tools.base_tool import BaseTool, OpenAIFunctionToolSchema
+from verl.tools.utils.tool_registry import initialize_tools_from_config
 
 
 class WeatherToolForTest(BaseTool):
@@ -43,7 +44,7 @@ class WeatherToolForTest(BaseTool):
         schema = get_json_schema(self.get_current_temperature)
         return OpenAIFunctionToolSchema(**schema)
 
-    async def execute(self, instance_id: str, parameters: dict[str, Any], **kwargs) -> Tuple[str, float, dict]:
+    async def execute(self, instance_id: str, parameters: dict[str, Any], **kwargs) -> tuple[str, float, dict]:
         try:
             result = self.get_current_temperature(**parameters)
             return json.dumps(result), 0, {}
@@ -74,7 +75,7 @@ class WeatherToolWithDataForTest(BaseTool):
             "unit": unit,
         }
 
-    async def execute(self, instance_id: str, parameters: dict[str, Any], **kwargs) -> Tuple[str, float, dict]:
+    async def execute(self, instance_id: str, parameters: dict[str, Any], **kwargs) -> tuple[str, float, dict]:
         try:
             result = self.get_temperature_date(**parameters)
             return json.dumps(result), 0, {}
@@ -88,11 +89,11 @@ def create_local_tool_config():
         "tools": [
             {
                 "class_name": "tests.tools.test_base_tool_on_cpu.WeatherToolForTest",
-                "config": {},
+                "config": {"type": "native"},
             },
             {
                 "class_name": "tests.tools.test_base_tool_on_cpu.WeatherToolWithDataForTest",
-                "config": {},
+                "config": {"type": "native"},
             },
         ]
     }
@@ -110,11 +111,11 @@ def create_fake_tool_config():
         "tools": [
             {
                 "class_name": "tests.workers.rollout.fake_path.test_vllm_chat_scheduler.WeatherTool",
-                "config": {},
+                "config": {"type": "native"},
             },
             {
                 "class_name": "tests.workers.rollout.fake_path.test_vllm_chat_scheduler.WeatherToolWithData",
-                "config": {},
+                "config": {"type": "native"},
             },
         ]
     }
@@ -155,5 +156,5 @@ def test_initialize_tools_from_local_config(create_local_tool_config):
 
     assert isinstance(tools[0], WeatherToolForTest)
     assert isinstance(tools[1], WeatherToolWithDataForTest)
-    assert tools[0].config == {}
-    assert tools[1].config == {}
+    assert tools[0].config == {"type": "native"}
+    assert tools[1].config == {"type": "native"}
