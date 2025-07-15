@@ -97,11 +97,11 @@ $$
 \hat{r}_{i,t}(\theta) = \text{clip}\left(r_{i,t}(\theta), 1 - \epsilon^{IS}_{low}, 1 + \epsilon^{IS}_{high}\right)
 $$
 
-- `actor_rollout_ref.actor.use_cispo`: Whether to use the CISPO loss
+- `actor_rollout_ref.actor.policy_loss.use_cispo`: Whether to use the CISPO loss
 
-- `actor_rollout_ref.actor.clip_ratio_is_high`: High bound ratio of the clipped IS in CISPO, defaults to 0.45
+- `actor_rollout_ref.actor.policy_loss.cispo_clip_ratio_high`: High bound ratio of the clipped IS in CISPO, defaults to 0.2
 
-- `actor_rollout_ref.actor.clip_ratio_is_low`: Lower bound ratio of the clipped IS in CISPO, defaults to 1.0
+- `actor_rollout_ref.actor.policy_loss.cispo_clip_ratio_low`: Lower bound ratio of the clipped IS in CISPO, defaults to 0.2
 
 ## Reference Example
 
