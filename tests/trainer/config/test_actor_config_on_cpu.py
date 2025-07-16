@@ -15,8 +15,6 @@
 import os
 import unittest
 
-from omegaconf import OmegaConf
-
 from verl.trainer.config import ActorConfig, FSDPActorConfig, MegatronActorConfig
 from verl.utils.config import omega_conf_to_dataclass
 
