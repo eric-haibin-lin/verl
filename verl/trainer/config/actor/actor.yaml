@@ -6,7 +6,7 @@
 
 # the abstract actor configs
 # fsdp, fsdp2 or megatron. must be set.
-strategy: fsdp
+strategy: ???
 
 # Split each sample into sub-batches of this size for PPO
 ppo_mini_batch_size: 256
