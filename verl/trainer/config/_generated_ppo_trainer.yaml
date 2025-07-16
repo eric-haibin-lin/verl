@@ -45,6 +45,7 @@ actor_rollout_ref:
       min_lr_ratio: 0.0
       num_cycles: 0.5
       warmup_style: constant
+    _target_: verl.trainer.config.FSDPActorConfig
     grad_clip: 1.0
     ulysses_sequence_parallel_size: 1
     entropy_from_logits_with_chunking: false

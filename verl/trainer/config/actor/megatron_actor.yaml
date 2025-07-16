@@ -102,3 +102,5 @@ profile:
 
   # the path to save the profile result
   save_path: null
+
+_target_: verl.trainer.config.MegatronActorConfig

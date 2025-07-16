@@ -13,10 +13,14 @@
 # limitations under the License.
 
 from .algorithm import AlgoConfig, FilterGroupsConfig, KLControlConfig, PFPPOConfig
+from .config import ActorConfig, FSDPActorConfig, MegatronActorConfig
 
 __all__ = [
+    "ActorConfig",
     "AlgoConfig",
     "FilterGroupsConfig",
+    "FSDPActorConfig",
     "KLControlConfig",
+    "MegatronActorConfig",
     "PFPPOConfig",
 ]

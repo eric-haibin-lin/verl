@@ -71,3 +71,5 @@ fsdp_config:
   # Only for FSDP1: FSDP1 configuration, prefetch the next forward-pass all-gather
   # before the current forward computation.
   forward_prefetch: False
+
+_target_: verl.trainer.config.FSDPActorConfig
