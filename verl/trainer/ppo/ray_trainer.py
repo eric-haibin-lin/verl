@@ -17,7 +17,7 @@
 PPO Trainer with Ray-based single controller.
 This trainer supports model-agonistic model initialization with huggingface
 """
-
+import warnings
 import json
 import os
 import uuid
@@ -366,21 +366,13 @@ class RayPPOTrainer:
         if self.config.algorithm.use_kl_in_reward:
             self.kl_ctrl_in_reward = core_algos.get_kl_controller(self.config.algorithm.kl_ctrl)
 
-        if self.config.algorithm.adv_estimator == AdvantageEstimator.GAE:
+        if config.critic.get('enable') is not None:
+            self.use_critic = config.critic.enable
+        elif self.config.algorithm.adv_estimator == AdvantageEstimator.GAE:
             self.use_critic = True
-        elif self.config.algorithm.adv_estimator in [
-            AdvantageEstimator.GRPO,
-            AdvantageEstimator.GRPO_PASSK,
-            AdvantageEstimator.REINFORCE_PLUS_PLUS,
-            AdvantageEstimator.REMAX,
-            AdvantageEstimator.RLOO,
-            AdvantageEstimator.OPO,
-            AdvantageEstimator.REINFORCE_PLUS_PLUS_BASELINE,
-            AdvantageEstimator.GPG,
-        ]:
-            self.use_critic = False
         else:
-            raise NotImplementedError
+            warnings.warn('Disabled critic as algorithm.adv_estimator != gae. If it is not intended, please set critic.enable=True')
+            self.use_critic = False
 
         self._validate_config()
         self._create_dataloader(train_dataset, val_dataset, collate_fn, train_sampler)
