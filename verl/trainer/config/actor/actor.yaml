@@ -110,4 +110,5 @@ optim:
   # Weight decay
   weight_decay: 0.01
 
+# Target class for this configuration
 _target_: verl.trainer.config.ActorConfig

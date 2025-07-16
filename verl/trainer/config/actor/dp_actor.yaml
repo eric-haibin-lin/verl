@@ -72,4 +72,5 @@ fsdp_config:
   # before the current forward computation.
   forward_prefetch: False
 
+# Target class for this configuration
 _target_: verl.trainer.config.FSDPActorConfig
