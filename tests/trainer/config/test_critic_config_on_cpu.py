@@ -204,7 +204,7 @@ class TestCriticConfig:
         assert valid_config.ppo_micro_batch_size_per_gpu == 2
 
         valid_config2 = CriticConfig(
-            strategy="fsdp2", ppo_micro_batch_size_per_gpu=None, ppo_micro_batch_size=4, use_dynamic_bsz=False
+            strategy="fsdp2", ppo_micro_batch_size_per_gpu=None, ppo_micro_batch_size=4, ppo_mini_batch_size=8, use_dynamic_bsz=False
         )
         assert valid_config2.ppo_micro_batch_size == 4
 
@@ -222,3 +222,62 @@ class TestCriticConfig:
             CriticConfig(
                 strategy="fsdp2", ppo_micro_batch_size=None, ppo_micro_batch_size_per_gpu=None, use_dynamic_bsz=False
             )
+
+    def test_micro_batch_size_divisibility_validation(self):
+        """Test micro batch size divisibility validation in __post_init__."""
+        valid_config = CriticConfig(
+            strategy="fsdp2", 
+            ppo_micro_batch_size_per_gpu=2,
+            ppo_mini_batch_size=8, 
+            use_dynamic_bsz=False
+        )
+        assert valid_config.ppo_mini_batch_size == 8
+        assert valid_config.ppo_micro_batch_size_per_gpu == 2
+
+        valid_config_with_mbs = CriticConfig(
+            strategy="fsdp2", 
+            ppo_mini_batch_size=8, 
+            ppo_micro_batch_size=4, 
+            use_dynamic_bsz=False
+        )
+        assert valid_config_with_mbs.ppo_mini_batch_size == 8
+        assert valid_config_with_mbs.ppo_micro_batch_size == 4
+
+        with pytest.raises(ValueError, match="ppo_mini_batch_size.*must be divisible by.*ppo_micro_batch_size"):
+            CriticConfig(
+                strategy="fsdp2", 
+                ppo_mini_batch_size=7, 
+                ppo_micro_batch_size=4, 
+                use_dynamic_bsz=False
+            )
+
+        dynamic_config = CriticConfig(
+            strategy="fsdp2", 
+            ppo_mini_batch_size=7, 
+            ppo_micro_batch_size=4, 
+            use_dynamic_bsz=True
+        )
+        assert dynamic_config.use_dynamic_bsz is True
+
+    def test_fsdp_sequence_parallelism_validation(self):
+        """Test FSDP sequence parallelism validation in FSDPCriticConfig.__post_init__."""
+        valid_config = FSDPCriticConfig(
+            ppo_micro_batch_size_per_gpu=2,
+            ulysses_sequence_parallel_size=2,
+            model={"use_remove_padding": True}
+        )
+        assert valid_config.ulysses_sequence_parallel_size == 2
+
+        with pytest.raises(ValueError, match="When using sequence parallelism for critic, you must enable.*use_remove_padding"):
+            FSDPCriticConfig(
+                ppo_micro_batch_size_per_gpu=2,
+                ulysses_sequence_parallel_size=2,
+                model={"use_remove_padding": False}
+            )
+
+        valid_config_no_sp = FSDPCriticConfig(
+            ppo_micro_batch_size_per_gpu=2,
+            ulysses_sequence_parallel_size=1,
+            model={"use_remove_padding": False}
+        )
+        assert valid_config_no_sp.ulysses_sequence_parallel_size == 1

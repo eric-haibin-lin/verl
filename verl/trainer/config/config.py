@@ -47,7 +47,7 @@ class CriticConfig(BaseConfig):
     """
 
     strategy: str
-    ppo_micro_batch_size_per_gpu: int
+    ppo_micro_batch_size_per_gpu: Optional[int] = None
 
     # For legacy reason configs related to batch_size are mutated in each role
     # In the future they will be added to frozen fields instead
@@ -82,6 +82,13 @@ class CriticConfig(BaseConfig):
         """Validate critic configuration parameters."""
         if not self.use_dynamic_bsz:
             self._check_mutually_exclusive(self.ppo_micro_batch_size, self.ppo_micro_batch_size_per_gpu, "critic")
+            
+            if self.ppo_micro_batch_size is not None:
+                if self.ppo_mini_batch_size % self.ppo_micro_batch_size != 0:
+                    raise ValueError(
+                        f"[critic] ppo_mini_batch_size ({self.ppo_mini_batch_size}) must be divisible by "
+                        f"ppo_micro_batch_size ({self.ppo_micro_batch_size})"
+                    )
 
     @staticmethod
     def _check_mutually_exclusive(mbs, mbs_per_gpu, name: str):
@@ -98,26 +105,17 @@ class CriticConfig(BaseConfig):
         Raises:
             ValueError: If both parameters are set or neither is set.
         """
-        settings = {
-            "actor_rollout_ref.actor": "micro_batch_size",
-            "critic": "micro_batch_size",
-            "reward_model": "micro_batch_size",
-            "actor_rollout_ref.ref": "log_prob_micro_batch_size",
-            "actor_rollout_ref.rollout": "log_prob_micro_batch_size",
-        }
+        param = "micro_batch_size"
+        param_per_gpu = f"{param}_per_gpu"
 
-        if name in settings:
-            param = settings[name]
-            param_per_gpu = f"{param}_per_gpu"
+        if mbs is None and mbs_per_gpu is None:
+            raise ValueError(f"[{name}] Please set at least one of '{name}.{param}' or '{name}.{param_per_gpu}'.")
 
-            if mbs is None and mbs_per_gpu is None:
-                raise ValueError(f"[{name}] Please set at least one of '{name}.{param}' or '{name}.{param_per_gpu}'.")
-
-            if mbs is not None and mbs_per_gpu is not None:
-                raise ValueError(
-                    f"[{name}] You have set both '{name}.{param}' AND '{name}.{param_per_gpu}'. Please remove "
-                    f"'{name}.{param}' because only '*_{param_per_gpu}' is supported (the former is deprecated)."
-                )
+        if mbs is not None and mbs_per_gpu is not None:
+            raise ValueError(
+                f"[{name}] You have set both '{name}.{param}' AND '{name}.{param_per_gpu}'. Please remove "
+                f"'{name}.{param}' because only '*_{param_per_gpu}' is supported (the former is deprecated)."
+            )
 
 
 @dataclass
@@ -169,3 +167,14 @@ class FSDPCriticConfig(CriticConfig):
     forward_micro_batch_size_per_gpu: int = 1
     ulysses_sequence_parallel_size: int = 1
     grad_clip: float = 1.0
+
+    def __post_init__(self):
+        """Validate FSDP critic configuration parameters."""
+        super().__post_init__()
+        
+        if self.strategy in {"fsdp", "fsdp2"}:
+            if self.ulysses_sequence_parallel_size > 1:
+                if not self.model.get("use_remove_padding", False):
+                    raise ValueError(
+                        "When using sequence parallelism for critic, you must enable `use_remove_padding`."
+                    )
