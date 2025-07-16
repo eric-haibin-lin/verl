@@ -22,8 +22,6 @@ from verl.utils.config import omega_conf_to_dataclass
 class TestActorConfig(unittest.TestCase):
     """Test the ActorConfig dataclass and its variants."""
 
-
-
     def test_config_inheritance(self):
         """Test that the inheritance hierarchy works correctly."""
         megatron_dict = {
