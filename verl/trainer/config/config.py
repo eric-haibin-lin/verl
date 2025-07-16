@@ -74,6 +74,47 @@ class CriticConfig(BaseConfig):
     checkpoint: dict[str, Any] = field(default_factory=dict)
     profiler: dict[str, Any] = field(default_factory=dict)
 
+    def __post_init__(self):
+        """Validate critic configuration parameters."""
+        if not self.use_dynamic_bsz:
+            self._check_mutually_exclusive(self.ppo_micro_batch_size, self.ppo_micro_batch_size_per_gpu, "critic")
+
+    @staticmethod
+    def _check_mutually_exclusive(mbs, mbs_per_gpu, name: str):
+        """Validate mutually exclusive micro batch size configuration options.
+
+        Ensures that users don't set both deprecated micro_batch_size and
+        the new micro_batch_size_per_gpu parameters simultaneously.
+
+        Args:
+            mbs: Deprecated micro batch size parameter value.
+            mbs_per_gpu: New micro batch size per GPU parameter value.
+            name (str): Configuration section name for error messages.
+
+        Raises:
+            ValueError: If both parameters are set or neither is set.
+        """
+        settings = {
+            "actor_rollout_ref.actor": "micro_batch_size",
+            "critic": "micro_batch_size",
+            "reward_model": "micro_batch_size",
+            "actor_rollout_ref.ref": "log_prob_micro_batch_size",
+            "actor_rollout_ref.rollout": "log_prob_micro_batch_size",
+        }
+
+        if name in settings:
+            param = settings[name]
+            param_per_gpu = f"{param}_per_gpu"
+
+            if mbs is None and mbs_per_gpu is None:
+                raise ValueError(f"[{name}] Please set at least one of '{name}.{param}' or '{name}.{param_per_gpu}'.")
+
+            if mbs is not None and mbs_per_gpu is not None:
+                raise ValueError(
+                    f"[{name}] You have set both '{name}.{param}' AND '{name}.{param_per_gpu}'. Please remove "
+                    f"'{name}.{param}' because only '*_{param_per_gpu}' is supported (the former is deprecated)."
+                )
+
 
 @dataclass
 class MegatronCriticConfig(CriticConfig):

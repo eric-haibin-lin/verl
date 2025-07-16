@@ -476,12 +476,6 @@ class RayPPOTrainer:
                 "actor_rollout_ref.rollout",
             )
 
-        if self.use_critic and not config.critic.use_dynamic_bsz:
-            # Check for critic micro-batch size conflicts
-            check_mutually_exclusive(
-                config.critic.ppo_micro_batch_size, config.critic.ppo_micro_batch_size_per_gpu, "critic"
-            )
-
         # Check for reward model micro-batch size conflicts
         if config.reward_model.enable and not config.reward_model.use_dynamic_bsz:
             check_mutually_exclusive(
