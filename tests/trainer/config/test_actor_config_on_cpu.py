@@ -51,7 +51,7 @@ class TestActorConfig(unittest.TestCase):
         from hydra import compose, initialize_config_dir
 
         with initialize_config_dir(config_dir=os.path.abspath("verl/trainer/config/actor")):
-            cfg = compose(config_name="actor")
+            cfg = compose(config_name="actor", overrides=["strategy=fsdp"])
 
         config = omega_conf_to_dataclass(cfg)
 
@@ -114,6 +114,24 @@ class TestActorConfig(unittest.TestCase):
         self.assertIn("ppo_mini_batch_size", field_names)
 
         self.assertGreater(len(config), 0)
+
+    def test_frozen_fields_modification_raises_exception(self):
+        """Test that modifying frozen fields raises an exception."""
+        config_dict = {
+            "_target_": "verl.trainer.config.ActorConfig",
+            "strategy": "fsdp",
+            "ppo_mini_batch_size": 256,
+        }
+        config = omega_conf_to_dataclass(config_dict)
+
+        with self.assertRaises(AttributeError):
+            config.strategy = "megatron"
+
+        with self.assertRaises(AttributeError):
+            config.clip_ratio = 0.5
+
+        config.ppo_mini_batch_size = 512  # This should work since it's not in frozen fields anymore
+        self.assertEqual(config.ppo_mini_batch_size, 512)
 
 
 if __name__ == "__main__":

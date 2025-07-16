@@ -49,8 +49,6 @@ fsdp_config:
 
   # policy for wrapping the model
   wrap_policy:
-
-    # Minimum number of parameters to trigger wrapping a layer with FSDP
     min_num_params: 0
 
   # Whether to offload model parameters to CPU (trades speed for memory)
