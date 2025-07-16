@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from verl.base_config import BaseConfig
+from verl.utils.profiler import ProfilerConfig
 
 
 @dataclass
@@ -72,7 +73,7 @@ class CriticConfig(BaseConfig):
     optim: dict[str, Any] = field(default_factory=dict)
     model: dict[str, Any] = field(default_factory=dict)
     checkpoint: dict[str, Any] = field(default_factory=dict)
-    profiler: dict[str, Any] = field(default_factory=dict)
+    profiler: ProfilerConfig = field(default_factory=ProfilerConfig)
 
     def __post_init__(self):
         """Validate critic configuration parameters."""
