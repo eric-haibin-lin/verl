@@ -58,7 +58,7 @@ class CriticConfig(BaseConfig):
     ]
 
     rollout_n: int = 1
-    strategy: str = "fsdp"
+    strategy: str
     optim: dict[str, Any] = field(default_factory=dict)
     model: dict[str, Any] = field(default_factory=dict)
     ppo_mini_batch_size: int = 1
