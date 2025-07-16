@@ -37,7 +37,7 @@ class TestCriticConfig:
         assert yaml_path.exists(), f"Config file not found: {yaml_path}"
 
         with initialize_config_dir(config_dir=os.path.abspath("verl/trainer/config/critic")):
-            test_config = compose(config_name="megatron_critic")
+            test_config = compose(config_name="megatron_critic", overrides=["ppo_micro_batch_size_per_gpu=1"])
 
         megatron_config_obj = omega_conf_to_dataclass(test_config)
 
@@ -69,7 +69,7 @@ class TestCriticConfig:
         assert yaml_path.exists(), f"Config file not found: {yaml_path}"
 
         with initialize_config_dir(config_dir=os.path.abspath("verl/trainer/config/critic")):
-            test_config = compose(config_name="dp_critic")
+            test_config = compose(config_name="dp_critic", overrides=["ppo_micro_batch_size_per_gpu=1"])
 
         fsdp_config_obj = omega_conf_to_dataclass(test_config)
 
@@ -98,27 +98,27 @@ class TestCriticConfig:
 
     def test_config_inheritance_hierarchy(self):
         """Test that the inheritance hierarchy is correct."""
-        megatron_config = MegatronCriticConfig()
+        megatron_config = MegatronCriticConfig(ppo_micro_batch_size_per_gpu=1)
         assert isinstance(megatron_config, CriticConfig)
         assert isinstance(megatron_config, MegatronCriticConfig)
 
-        fsdp_config = FSDPCriticConfig()
+        fsdp_config = FSDPCriticConfig(ppo_micro_batch_size_per_gpu=1)
         assert isinstance(fsdp_config, CriticConfig)
         assert isinstance(fsdp_config, FSDPCriticConfig)
 
-        critic_config = CriticConfig()
+        critic_config = CriticConfig(ppo_micro_batch_size_per_gpu=1, strategy="fsdp2")
         assert isinstance(critic_config, CriticConfig)
         assert not isinstance(critic_config, MegatronCriticConfig)
         assert not isinstance(critic_config, FSDPCriticConfig)
 
     def test_config_dict_interface(self):
         """Test that configs provide dict-like interface from BaseConfig."""
-        config = CriticConfig()
+        config = CriticConfig(ppo_micro_batch_size_per_gpu=1, strategy="fsdp2")
 
         assert "strategy" in config
-        assert config["strategy"] == "fsdp"
+        assert config["strategy"] == "fsdp2"
 
-        assert config.get("strategy") == "fsdp"
+        assert config.get("strategy") == "fsdp2"
         assert config.get("nonexistent_key", "default") == "default"
 
         keys = list(config)
@@ -129,21 +129,21 @@ class TestCriticConfig:
 
     def test_frozen_fields_immutability(self):
         """Test that frozen fields raise exceptions when modified after creation."""
-        critic_config = CriticConfig()
+        critic_config = CriticConfig(ppo_micro_batch_size_per_gpu=1, strategy="fsdp2")
         frozen_fields = ["rollout_n", "strategy", "cliprange_value"]
 
         for field_name in frozen_fields:
             with pytest.raises((AttributeError, TypeError, ValueError)):
                 setattr(critic_config, field_name, "modified_value")
 
-        megatron_config = MegatronCriticConfig()
+        megatron_config = MegatronCriticConfig(ppo_micro_batch_size_per_gpu=1)
         megatron_frozen_fields = ["nccl_timeout", "load_weight", "data_loader_seed"]
 
         for field_name in megatron_frozen_fields:
             with pytest.raises((AttributeError, TypeError, ValueError)):
                 setattr(megatron_config, field_name, "modified_value")
 
-        fsdp_config = FSDPCriticConfig()
+        fsdp_config = FSDPCriticConfig(ppo_micro_batch_size_per_gpu=1)
         fsdp_frozen_fields = ["ulysses_sequence_parallel_size", "grad_clip"]
 
         for field_name in fsdp_frozen_fields:
@@ -152,7 +152,7 @@ class TestCriticConfig:
 
     def test_batch_size_fields_modifiable(self):
         """Test that batch size fields can be modified after creation."""
-        critic_config = CriticConfig()
+        critic_config = CriticConfig(ppo_micro_batch_size_per_gpu=1, strategy="fsdp2")
 
         critic_config.ppo_mini_batch_size = 8
         critic_config.ppo_micro_batch_size = 4
@@ -162,7 +162,7 @@ class TestCriticConfig:
         assert critic_config.ppo_micro_batch_size == 4
         assert critic_config.ppo_micro_batch_size_per_gpu == 2
 
-        fsdp_config = FSDPCriticConfig()
+        fsdp_config = FSDPCriticConfig(ppo_micro_batch_size_per_gpu=1)
 
         fsdp_config.forward_micro_batch_size = 16
         fsdp_config.forward_micro_batch_size_per_gpu = 8
@@ -172,14 +172,14 @@ class TestCriticConfig:
 
     def test_profiler_config_type_validation(self):
         """Test that profiler field has correct type and validation."""
-        critic_config = CriticConfig()
+        critic_config = CriticConfig(ppo_micro_batch_size_per_gpu=1, strategy="fsdp2")
         assert isinstance(critic_config.profiler, ProfilerConfig)
         assert critic_config.profiler.discrete is False
         assert critic_config.profiler.all_ranks is False
         assert critic_config.profiler.ranks == []
 
         custom_profiler = ProfilerConfig(discrete=True, all_ranks=True, ranks=[0, 1])
-        critic_config_custom = CriticConfig(profiler=custom_profiler)
+        critic_config_custom = CriticConfig(profiler=custom_profiler, ppo_micro_batch_size_per_gpu=1, strategy="fsdp2")
         assert isinstance(critic_config_custom.profiler, ProfilerConfig)
         assert critic_config_custom.profiler.discrete is True
         assert critic_config_custom.profiler.all_ranks is True
@@ -200,23 +200,25 @@ class TestCriticConfig:
 
     def test_critic_config_validation_logic(self):
         """Test the __post_init__ validation logic for CriticConfig."""
-        valid_config = CriticConfig(strategy="fsdp", ppo_micro_batch_size_per_gpu=2, use_dynamic_bsz=False)
+        valid_config = CriticConfig(strategy="fsdp2", ppo_micro_batch_size_per_gpu=2, use_dynamic_bsz=False)
         assert valid_config.ppo_micro_batch_size_per_gpu == 2
 
-        valid_config2 = CriticConfig(strategy="fsdp", ppo_micro_batch_size=4, use_dynamic_bsz=False)
+        valid_config2 = CriticConfig(
+            strategy="fsdp2", ppo_micro_batch_size_per_gpu=None, ppo_micro_batch_size=4, use_dynamic_bsz=False
+        )
         assert valid_config2.ppo_micro_batch_size == 4
 
-        dynamic_config = CriticConfig(
-            strategy="fsdp", ppo_micro_batch_size=4, ppo_micro_batch_size_per_gpu=2, use_dynamic_bsz=True
-        )
+        dynamic_config = CriticConfig(strategy="fsdp2", ppo_micro_batch_size_per_gpu=2, use_dynamic_bsz=True)
         assert dynamic_config.use_dynamic_bsz is True
 
         with pytest.raises(ValueError, match="You have set both.*micro_batch_size.*AND.*micro_batch_size_per_gpu"):
-            CriticConfig(strategy="fsdp", ppo_micro_batch_size=4, ppo_micro_batch_size_per_gpu=2, use_dynamic_bsz=False)
+            CriticConfig(
+                strategy="fsdp2", ppo_micro_batch_size=4, ppo_micro_batch_size_per_gpu=2, use_dynamic_bsz=False
+            )
 
         with pytest.raises(
             ValueError, match="Please set at least one of.*micro_batch_size.*or.*micro_batch_size_per_gpu"
         ):
             CriticConfig(
-                strategy="fsdp", ppo_micro_batch_size=None, ppo_micro_batch_size_per_gpu=None, use_dynamic_bsz=False
+                strategy="fsdp2", ppo_micro_batch_size=None, ppo_micro_batch_size_per_gpu=None, use_dynamic_bsz=False
             )

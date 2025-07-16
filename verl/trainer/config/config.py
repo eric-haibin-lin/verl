@@ -19,20 +19,22 @@ from verl.base_config import BaseConfig
 from verl.utils.profiler import ProfilerConfig
 
 
-@dataclass
+# Note(haibin.lin): kw_only=True is required as BaseConfig specifies `extra` with default values
+# If all of child class fields have default values, `kw_only=True` is not required.
+@dataclass(kw_only=True)
 class CriticConfig(BaseConfig):
     """Configuration for critic model training.
 
     The inheritance from BaseConfig provides omegaconf.DictConfig-like interface for a dataclass config.
 
     Args:
-        rollout_n (int): Number of rollouts per update (mirrors actor rollout_n).
         strategy (str): Strategy used for critic model training (fsdp, fsdp2, megatron).
+        ppo_micro_batch_size_per_gpu (int): Local per-GPU micro batch size.
+        rollout_n (int): Number of rollouts per update (mirrors actor rollout_n).
         optim (Dict[str, Any]): Optimizer configuration including lr, weight_decay, etc.
         model (Dict[str, Any]): Model configuration including path, tokenizer_path, etc.
         ppo_mini_batch_size (int): PPO mini-batch size per update.
         ppo_micro_batch_size (Optional[int]): Global micro batch size (deprecated).
-        ppo_micro_batch_size_per_gpu (Optional[int]): Local per-GPU micro batch size.
         use_dynamic_bsz (bool): Whether to automatically adjust batch size at runtime.
         ppo_max_token_len_per_gpu (int): Max tokens per GPU in one PPO batch.
         forward_max_token_len_per_gpu (int): Max token length per GPU in forward pass.
@@ -43,6 +45,9 @@ class CriticConfig(BaseConfig):
         checkpoint (Dict[str, Any]): Checkpoint configuration.
         profiler (Dict[str, Any]): Profiler configuration.
     """
+
+    strategy: str
+    ppo_micro_batch_size_per_gpu: int
 
     # For legacy reason configs related to batch_size are mutated in each role
     # In the future they will be added to frozen fields instead
@@ -58,7 +63,6 @@ class CriticConfig(BaseConfig):
         "loss_agg_mode",
     ]
 
-    strategy: str = "fsdp"
     rollout_n: int = 1
     ppo_mini_batch_size: int = 1
     use_dynamic_bsz: bool = False
@@ -69,7 +73,6 @@ class CriticConfig(BaseConfig):
     cliprange_value: float = 0.5
     loss_agg_mode: str = "token-mean"
     ppo_micro_batch_size: Optional[int] = None
-    ppo_micro_batch_size_per_gpu: Optional[int] = None
     optim: dict[str, Any] = field(default_factory=dict)
     model: dict[str, Any] = field(default_factory=dict)
     checkpoint: dict[str, Any] = field(default_factory=dict)
