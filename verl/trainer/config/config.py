@@ -57,13 +57,9 @@ class CriticConfig(BaseConfig):
         "loss_agg_mode",
     ]
 
+    strategy: str = "fsdp"
     rollout_n: int = 1
-    strategy: str
-    optim: dict[str, Any] = field(default_factory=dict)
-    model: dict[str, Any] = field(default_factory=dict)
     ppo_mini_batch_size: int = 1
-    ppo_micro_batch_size: Optional[int] = None
-    ppo_micro_batch_size_per_gpu: Optional[int] = None
     use_dynamic_bsz: bool = False
     ppo_max_token_len_per_gpu: int = 32768
     forward_max_token_len_per_gpu: int = 32768
@@ -71,6 +67,10 @@ class CriticConfig(BaseConfig):
     shuffle: bool = True
     cliprange_value: float = 0.5
     loss_agg_mode: str = "token-mean"
+    ppo_micro_batch_size: Optional[int] = None
+    ppo_micro_batch_size_per_gpu: Optional[int] = None
+    optim: dict[str, Any] = field(default_factory=dict)
+    model: dict[str, Any] = field(default_factory=dict)
     checkpoint: dict[str, Any] = field(default_factory=dict)
     profiler: dict[str, Any] = field(default_factory=dict)
 
