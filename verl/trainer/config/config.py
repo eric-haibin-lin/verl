@@ -34,13 +34,8 @@ class CheckpointConfig(BaseConfig):
     _frozen_fields = ["save_contents", "load_contents", "async_save"]
 
     save_contents: list[str] = field(default_factory=lambda: ["model", "optimizer", "extra"])
-    """What to include in saved checkpoints. Options: 'model', 'optimizer', 'extra', 'hf_model'."""
-
     load_contents: list[str] = field(default_factory=lambda: ["model", "optimizer", "extra"])
-    """Contents to load from checkpoint. Defaults to same as save_contents."""
-
     async_save: bool = False
-    """Whether to save checkpoints asynchronously."""
 
 
 @dataclass
@@ -61,23 +56,11 @@ class PolicyLossConfig(BaseConfig):
     _frozen_fields = ["loss_mode", "clip_cov_ratio", "clip_cov_lb", "clip_cov_ub", "kl_cov_ratio", "ppo_kl_coef"]
 
     loss_mode: str = "vanilla"
-    """Loss function mode. Options: 'vanilla', 'clip-cov', 'kl-cov', 'gpg'."""
-
     clip_cov_ratio: float = 0.0002
-    """Ratio of tokens to be clipped for clip-cov loss."""
-
     clip_cov_lb: float = 1.0
-    """Lower bound for clip-cov loss."""
-
     clip_cov_ub: float = 5.0
-    """Upper bound for clip-cov loss."""
-
     kl_cov_ratio: float = 0.0002
-    """Ratio of tokens to be applied KL penalty for kl-cov loss."""
-
     ppo_kl_coef: float = 0.1
-    """KL divergence penalty coefficient."""
-
 
 @dataclass
 class OptimConfig(BaseConfig):
@@ -128,58 +111,23 @@ class OptimConfig(BaseConfig):
     ]
 
     lr: float = 1e-6
-    """Learning rate."""
-
     lr_warmup_steps_ratio: float = 0.0
-    """Warmup steps ratio (used if lr_warmup_steps is negative)."""
-
     total_training_steps: int = -1
-    """Total training steps (must be overridden at runtime)."""
-
     weight_decay: float = 0.01
-    """Weight decay coefficient."""
-
     lr_warmup_steps: Optional[int] = None
-    """Warmup steps; negative value delegates to lr_warmup_steps_ratio."""
-
     lr_warmup_init: float = 0.0
-    """Initial learning rate for warmup."""
-
     lr_decay_steps: Optional[int] = None
-    """Number of steps for learning rate decay."""
-
     lr_decay_style: str = "constant"
-    """Learning rate decay style."""
-
     min_lr: float = 0.0
-    """Minimum learning rate."""
-
     weight_decay_incr_style: str = "constant"
-    """Weight decay increment style."""
-
     lr_wsd_decay_style: str = "exponential"
-    """Learning rate warmup-stable-decay style."""
-
     lr_wsd_decay_steps: Optional[int] = None
-    """Steps for warmup-stable-decay schedule."""
-
     use_checkpoint_opt_param_scheduler: bool = False
-    """Whether to use checkpoint optimizer parameter scheduler."""
-
     optimizer: str = "adam"
-    """Optimizer type."""
-
     clip_grad: float = 1.0
-    """Gradient clipping threshold."""
-
     min_lr_ratio: float = 0.0
-    """Minimum LR ratio for cosine schedule."""
-
     num_cycles: float = 0.5
-    """Number of cosine cycles in LR schedule."""
-
     warmup_style: str = "constant"
-    """LR warmup style: 'constant' or 'cosine'."""
 
 
 @dataclass
@@ -230,55 +178,22 @@ class MegatronEngineConfig(BaseConfig):
     ]
 
     param_offload: bool = False
-    """Whether to offload parameters to CPU."""
-
     grad_offload: bool = False
-    """Whether to offload gradients to CPU."""
-
     optimizer_offload: bool = False
-    """Whether to offload optimizer states to CPU."""
-
     tensor_model_parallel_size: int = 1
-    """Tensor model parallel size."""
-
     expert_model_parallel_size: int = 1
-    """Expert model parallel size for MoE models."""
-
     expert_tensor_parallel_size: Optional[int] = None
-    """Expert tensor parallel size for MoE models."""
-
     pipeline_model_parallel_size: int = 1
-    """Pipeline model parallel size."""
-
     virtual_pipeline_model_parallel_size: Optional[int] = None
-    """Virtual pipeline model parallel size for interleaved scheduling."""
-
     context_parallel_size: int = 1
-    """Context parallel size for long sequences."""
-
     sequence_parallel: bool = True
-    """Whether to enable sequence parallelism."""
-
     use_distributed_optimizer: bool = True
-    """Whether to use distributed optimizer."""
-
     use_dist_checkpointing: bool = False
-    """Whether to use distributed checkpointing."""
-
     dist_checkpointing_path: Optional[str] = None
-    """Path for distributed checkpointing."""
-
     seed: int = 42
-    """Random seed for reproducibility."""
-
     override_ddp_config: dict[str, Any] = field(default_factory=dict)
-    """Override configuration for DDP."""
-
     override_transformer_config: dict[str, Any] = field(default_factory=dict)
-    """Override configuration for transformer."""
-
     use_mbridge: bool = False
-    """Whether to use MBridge for communication."""
 
 
 @dataclass
