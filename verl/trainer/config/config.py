@@ -64,74 +64,6 @@ class PolicyLossConfig(BaseConfig):
 
 
 @dataclass
-class OptimConfig(BaseConfig):
-    """Configuration for optimizer settings.
-
-    The inheritance from BaseConfig provides omegaconf.DictConfig-like interface for a dataclass config.
-
-    Args:
-        lr (float): Learning rate.
-        lr_warmup_steps_ratio (float): Warmup steps ratio (used if lr_warmup_steps is negative).
-        total_training_steps (int): Total training steps (must be overridden at runtime).
-        weight_decay (float): Weight decay coefficient.
-        lr_warmup_steps (Optional[int]): Warmup steps; negative value delegates to lr_warmup_steps_ratio.
-        lr_warmup_init (float): Initial learning rate for warmup.
-        lr_decay_steps (Optional[int]): Number of steps for learning rate decay.
-        lr_decay_style (str): Learning rate decay style.
-        min_lr (float): Minimum learning rate.
-        weight_decay_incr_style (str): Weight decay increment style.
-        lr_wsd_decay_style (str): Learning rate warmup-stable-decay style.
-        lr_wsd_decay_steps (Optional[int]): Steps for warmup-stable-decay schedule.
-        use_checkpoint_opt_param_scheduler (bool): Whether to use checkpoint optimizer parameter scheduler.
-        optimizer (str): Optimizer type.
-        clip_grad (float): Gradient clipping threshold.
-        min_lr_ratio (float): Minimum LR ratio for cosine schedule.
-        num_cycles (float): Number of cosine cycles in LR schedule.
-        warmup_style (str): LR warmup style: 'constant' or 'cosine'.
-    """
-
-    _frozen_fields = [
-        "lr",
-        "lr_warmup_steps_ratio",
-        "total_training_steps",
-        "weight_decay",
-        "lr_warmup_steps",
-        "lr_warmup_init",
-        "lr_decay_steps",
-        "lr_decay_style",
-        "min_lr",
-        "weight_decay_incr_style",
-        "lr_wsd_decay_style",
-        "lr_wsd_decay_steps",
-        "use_checkpoint_opt_param_scheduler",
-        "optimizer",
-        "clip_grad",
-        "min_lr_ratio",
-        "num_cycles",
-        "warmup_style",
-    ]
-
-    lr: float = 1e-6
-    lr_warmup_steps_ratio: float = 0.0
-    total_training_steps: int = -1
-    weight_decay: float = 0.01
-    lr_warmup_steps: Optional[int] = None
-    lr_warmup_init: float = 0.0
-    lr_decay_steps: Optional[int] = None
-    lr_decay_style: str = "constant"
-    min_lr: float = 0.0
-    weight_decay_incr_style: str = "constant"
-    lr_wsd_decay_style: str = "exponential"
-    lr_wsd_decay_steps: Optional[int] = None
-    use_checkpoint_opt_param_scheduler: bool = False
-    optimizer: str = "adam"
-    clip_grad: float = 1.0
-    min_lr_ratio: float = 0.0
-    num_cycles: float = 0.5
-    warmup_style: str = "constant"
-
-
-@dataclass
 class MegatronEngineConfig(BaseConfig):
     """Configuration for Megatron parallelism.
 
@@ -272,7 +204,7 @@ class ActorConfig(BaseConfig):
         ppo_epochs (int): Number of PPO epochs per training step.
         shuffle (bool): Whether to shuffle data during training.
         checkpoint (CheckpointConfig): Configuration for checkpointing.
-        optim (OptimConfig): Configuration for optimizer.
+        optim (Dict[str, Any]): Configuration for optimizer.
     """
 
     _frozen_fields = [
@@ -311,7 +243,7 @@ class ActorConfig(BaseConfig):
     ppo_epochs: int = 1
     shuffle: bool = False
     checkpoint: CheckpointConfig = field(default_factory=CheckpointConfig)
-    optim: OptimConfig = field(default_factory=OptimConfig)
+    optim: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

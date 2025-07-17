@@ -53,6 +53,7 @@ actor_rollout_ref:
       lr_wsd_decay_style: exponential
       lr_wsd_decay_steps: null
       use_checkpoint_opt_param_scheduler: false
+    _target_: verl.trainer.config.MegatronActorConfig
     data_loader_seed: null
     load_weight: true
     megatron:
