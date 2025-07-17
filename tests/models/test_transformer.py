@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import torch
-from flash_attn.bert_padding import index_first_axis, pad_input, rearrange, unpad_input
+from verl.utils.kernel.flash_attn import index_first_axis, pad_input, rearrange, unpad_input
 from transformers import (
     AutoModelForCausalLM,
     AutoModelForTokenClassification,
