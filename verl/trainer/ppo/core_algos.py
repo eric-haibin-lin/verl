@@ -1011,6 +1011,13 @@ def compute_policy_loss_cispo(
     cispo_clip_ratio_low = (
         config.policy_loss.cispo_clip_ratio_low if config.policy_loss.cispo_clip_ratio_low is not None else 0.2
     )
+    clip_ratio_c = config.get("clip_ratio_c", 3.0)
+
+    # same code as compute_policy_loss
+    assert clip_ratio_c > 1.0, (
+        "The lower bound of the clip_ratio_c for dual-clip PPO should be greater than 1.0,"
+        + f" but get the value: {clip_ratio_c}."
+    )
 
     negative_approx_kl = log_prob - old_log_prob
     negative_approx_kl = torch.clamp(negative_approx_kl, min=-20.0, max=20.0)
