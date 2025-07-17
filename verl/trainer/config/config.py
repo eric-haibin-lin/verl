@@ -291,7 +291,7 @@ class ActorConfig(BaseConfig):
         "shuffle",
     ]
 
-    strategy: str
+    strategy: str = field(default="")
     ppo_mini_batch_size: int = 256
     ppo_micro_batch_size: Optional[int] = None
     ppo_micro_batch_size_per_gpu: Optional[int] = None
