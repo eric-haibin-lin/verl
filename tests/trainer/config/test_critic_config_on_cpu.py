@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 from hydra import compose, initialize_config_dir
 
-from verl.trainer.config.config import CriticConfig, FSDPCriticConfig, MegatronCriticConfig
+from verl.trainer.config import CriticConfig, FSDPCriticConfig, MegatronCriticConfig
 from verl.utils.config import omega_conf_to_dataclass
 from verl.utils.profiler import ProfilerConfig
 

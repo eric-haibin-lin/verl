@@ -12,15 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .actor import ActorConfig, FSDPActorConfig, MegatronActorConfig, PolicyLossConfig
 from .algorithm import AlgoConfig, FilterGroupsConfig, KLControlConfig, PFPPOConfig
-from .config import (
-    ActorConfig,
-    CriticConfig,
-    FSDPActorConfig,
-    FSDPCriticConfig,
-    MegatronActorConfig,
-    MegatronCriticConfig,
-)
+from .critic import CriticConfig, FSDPCriticConfig, MegatronCriticConfig
 
 __all__ = [
     "ActorConfig",
@@ -33,4 +27,5 @@ __all__ = [
     "MegatronActorConfig",
     "MegatronCriticConfig",
     "PFPPOConfig",
+    "PolicyLossConfig",
 ]
