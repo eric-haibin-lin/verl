@@ -150,12 +150,19 @@ class TestComputePolicyLossCispo(unittest.TestCase):
         from types import SimpleNamespace
 
         self.config = SimpleNamespace()
+        self.config.loss_mode = 'cispo'
         self.config.clip_ratio = 0.2
         self.config.clip_ratio_low = None
         self.config.clip_ratio_high = None
+        self.config.clip_ratio_c = 3.0
         self.config.policy_loss = SimpleNamespace()
         self.config.policy_loss.cispo_clip_ratio_high = 0.2
         self.config.policy_loss.cispo_clip_ratio_low = 0.2
+        
+        # Add get method to SimpleNamespace for compatibility
+        def get(key, default=None):
+            return getattr(self.config, key, default)
+        self.config.get = get
 
     def test_cispo_function_exists_and_registered(self):
         """Test that CISPO function is properly registered"""
