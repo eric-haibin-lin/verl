@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from verl.base_config import BaseConfig
+from verl.utils.profiler import ProfilerConfig
 
 
 @dataclass
@@ -325,10 +326,12 @@ class CriticConfig(BaseConfig):
         loss_agg_mode (str): Loss aggregation mode.
         checkpoint (Dict[str, Any]): Checkpoint configuration.
         profiler (Dict[str, Any]): Profiler configuration.
+        enable (Optional[bool]): Whether to enable the critic.
     """
 
     strategy: str
     ppo_micro_batch_size_per_gpu: Optional[int] = None
+    enable: Optional[bool] = None
 
     # For legacy reason configs related to batch_size are mutated in each role
     # In the future they will be added to frozen fields instead
@@ -357,7 +360,7 @@ class CriticConfig(BaseConfig):
     optim: dict[str, Any] = field(default_factory=dict)
     model: dict[str, Any] = field(default_factory=dict)
     checkpoint: dict[str, Any] = field(default_factory=dict)
-    profiler: dict[str, Any] = field(default_factory=dict)
+    profiler: ProfilerConfig = field(default_factory=ProfilerConfig)
 
     def __post_init__(self):
         """Validate critic configuration parameters."""
