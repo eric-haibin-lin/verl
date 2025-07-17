@@ -82,13 +82,27 @@ class CriticConfig(BaseConfig):
         """Validate critic configuration parameters."""
         if not self.use_dynamic_bsz:
             self._check_mutually_exclusive(self.ppo_micro_batch_size, self.ppo_micro_batch_size_per_gpu, "critic")
-            
+
             if self.ppo_micro_batch_size is not None:
                 if self.ppo_mini_batch_size % self.ppo_micro_batch_size != 0:
                     raise ValueError(
                         f"[critic] ppo_mini_batch_size ({self.ppo_mini_batch_size}) must be divisible by "
                         f"ppo_micro_batch_size ({self.ppo_micro_batch_size})"
                     )
+
+    def validate(self, n_gpus: int, train_batch_size: int):
+        """Validate critic configuration with runtime parameters.
+
+        Args:
+            n_gpus: Total number of GPUs available
+            train_batch_size: Training batch size from data config
+        """
+        if not self.use_dynamic_bsz:
+            if train_batch_size < self.ppo_mini_batch_size:
+                raise ValueError(
+                    f"train_batch_size ({train_batch_size}) must be >= "
+                    f"critic.ppo_mini_batch_size ({self.ppo_mini_batch_size})"
+                )
 
     @staticmethod
     def _check_mutually_exclusive(mbs, mbs_per_gpu, name: str):
@@ -143,6 +157,10 @@ class MegatronCriticConfig(CriticConfig):
     load_weight: bool = True
     data_loader_seed: Optional[int] = None
 
+    def validate(self, n_gpus: int, train_batch_size: int):
+        """Validate Megatron critic configuration with runtime parameters."""
+        super().validate(n_gpus, train_batch_size)
+
 
 @dataclass
 class FSDPCriticConfig(CriticConfig):
@@ -171,10 +189,23 @@ class FSDPCriticConfig(CriticConfig):
     def __post_init__(self):
         """Validate FSDP critic configuration parameters."""
         super().__post_init__()
-        
+
         if self.strategy in {"fsdp", "fsdp2"}:
             if self.ulysses_sequence_parallel_size > 1:
                 if not self.model.get("use_remove_padding", False):
                     raise ValueError(
                         "When using sequence parallelism for critic, you must enable `use_remove_padding`."
+                    )
+
+    def validate(self, n_gpus: int, train_batch_size: int):
+        """Validate FSDP critic configuration with runtime parameters."""
+        super().validate(n_gpus, train_batch_size)
+
+        if not self.use_dynamic_bsz:
+            sp_size = self.ulysses_sequence_parallel_size
+            if self.ppo_micro_batch_size is not None:
+                if self.ppo_micro_batch_size * sp_size < n_gpus:
+                    raise ValueError(
+                        f"critic.ppo_micro_batch_size ({self.ppo_micro_batch_size}) * "
+                        f"ulysses_sequence_parallel_size ({sp_size}) must be >= n_gpus ({n_gpus})"
                     )

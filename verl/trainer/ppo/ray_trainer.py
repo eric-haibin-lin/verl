@@ -17,10 +17,11 @@
 PPO Trainer with Ray-based single controller.
 This trainer supports model-agonistic model initialization with huggingface
 """
-import warnings
+
 import json
 import os
 import uuid
+import warnings
 from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -366,12 +367,16 @@ class RayPPOTrainer:
         if self.config.algorithm.use_kl_in_reward:
             self.kl_ctrl_in_reward = core_algos.get_kl_controller(self.config.algorithm.kl_ctrl)
 
-        if config.critic.get('enable') is not None:
+        if config.critic.get("enable") is not None:
             self.use_critic = config.critic.enable
         elif self.config.algorithm.adv_estimator == AdvantageEstimator.GAE:
             self.use_critic = True
         else:
-            warnings.warn('Disabled critic as algorithm.adv_estimator != gae. If it is not intended, please set critic.enable=True')
+            warnings.warn(
+                "Disabled critic as algorithm.adv_estimator != gae. "
+                "If it is not intended, please set critic.enable=True",
+                stacklevel=2,
+            )
             self.use_critic = False
 
         self._validate_config()
@@ -501,11 +506,11 @@ class RayPPOTrainer:
             print("NOTICE: You have both enabled in-reward kl and kl loss.")
 
         # critic
-        if self.use_critic and not config.critic.use_dynamic_bsz:
-            assert config.data.train_batch_size >= config.critic.ppo_mini_batch_size
-            sp_size = config.critic.get("ulysses_sequence_parallel_size", 1)
-            if config.critic.ppo_micro_batch_size is not None:
-                assert config.critic.ppo_micro_batch_size * sp_size >= n_gpus
+        if self.use_critic:
+            from verl.utils.config import omega_conf_to_dataclass
+
+            critic_config = omega_conf_to_dataclass(config.critic)
+            critic_config.validate(n_gpus, config.data.train_batch_size)
 
         # Check if use_remove_padding is enabled when using sequence parallelism for fsdp
         if config.actor_rollout_ref.actor.strategy in {"fsdp", "fsdp2"} and (
@@ -515,7 +520,6 @@ class RayPPOTrainer:
             assert config.actor_rollout_ref.model.use_remove_padding, (
                 "When using sequence parallelism for actor/ref policy, you must enable `use_remove_padding`."
             )
-
 
         if config.data.get("val_batch_size", None) is not None:
             print(
