@@ -62,6 +62,7 @@ class PolicyLossConfig(BaseConfig):
     kl_cov_ratio: float = 0.0002
     ppo_kl_coef: float = 0.1
 
+
 @dataclass
 class OptimConfig(BaseConfig):
     """Configuration for optimizer settings.
