@@ -43,14 +43,14 @@ class PolicyLossConfig(BaseConfig):
     ppo_kl_coef: float = 0.1
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ActorConfig(BaseConfig):
     """Configuration for actor model training.
 
     The inheritance from BaseConfig provides omegaconf.DictConfig-like interface for a dataclass config.
 
     Args:
-        strategy (str): Training strategy. Must be overridden in subclasses.
+        strategy (str): Training strategy. Must be specified.
         ppo_mini_batch_size (int): Mini-batch size for PPO training.
         ppo_micro_batch_size (Optional[int]): Micro-batch size for PPO training.
             If None, uses ppo_micro_batch_size_per_gpu.
@@ -90,7 +90,7 @@ class ActorConfig(BaseConfig):
         "shuffle",
     ]
 
-    strategy: str = field(default="")
+    strategy: str
     ppo_mini_batch_size: int = 256
     ppo_micro_batch_size: Optional[int] = None
     ppo_micro_batch_size_per_gpu: Optional[int] = None

@@ -48,9 +48,6 @@ class CriticConfig(BaseConfig):
     """
 
     strategy: str
-    ppo_micro_batch_size_per_gpu: Optional[int] = None
-    enable: Optional[bool] = None
-
     # For legacy reason configs related to batch_size are mutated in each role
     # In the future they will be added to frozen fields instead
     _frozen_fields = [
@@ -65,6 +62,8 @@ class CriticConfig(BaseConfig):
         "loss_agg_mode",
     ]
 
+    ppo_micro_batch_size_per_gpu: Optional[int] = None
+    enable: Optional[bool] = None
     rollout_n: int = 1
     ppo_mini_batch_size: int = 1
     use_dynamic_bsz: bool = False
