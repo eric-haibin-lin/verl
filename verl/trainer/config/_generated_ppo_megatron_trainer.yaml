@@ -5,6 +5,7 @@
 
 actor_rollout_ref:
   actor:
+    _target_: verl.trainer.config.MegatronActorConfig
     strategy: megatron
     ppo_mini_batch_size: 256
     ppo_micro_batch_size: null
@@ -53,7 +54,6 @@ actor_rollout_ref:
       lr_wsd_decay_style: exponential
       lr_wsd_decay_steps: null
       use_checkpoint_opt_param_scheduler: false
-    _target_: verl.trainer.config.MegatronActorConfig
     data_loader_seed: null
     load_weight: true
     megatron:
@@ -280,6 +280,7 @@ data:
     path: null
     name: null
 critic:
+  _target_: verl.trainer.config.MegatronCriticConfig
   rollout_n: ${oc.select:actor_rollout_ref.rollout.n,1}
   strategy: megatron
   optim:
@@ -334,7 +335,6 @@ critic:
     discrete: false
     all_ranks: false
     ranks: []
-  _target_: verl.trainer.config.MegatronCriticConfig
   nccl_timeout: 600
   megatron:
     param_offload: false

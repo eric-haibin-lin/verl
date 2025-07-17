@@ -13,6 +13,9 @@ defaults:
   # load the reference default config, then apply the fields in the current yaml
   - _self_
 
+# Target class for this configuration
+_target_: verl.trainer.config.FSDPActorConfig
+
 # TODO(haibin.lin): switch to fsdp2
 strategy: fsdp
 
@@ -71,6 +74,3 @@ fsdp_config:
   # Only for FSDP1: FSDP1 configuration, prefetch the next forward-pass all-gather
   # before the current forward computation.
   forward_prefetch: False
-
-# Target class for this configuration
-_target_: verl.trainer.config.FSDPActorConfig
