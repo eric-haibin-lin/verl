@@ -346,6 +346,7 @@ Remove padding Attention
 
 if is_flash_attn_2_available():
     from flash_attn import flash_attn_varlen_func
+
     from verl.utils.kernel.flash_attn import index_first_axis, pad_input, unpad_input  # noqa
 
 

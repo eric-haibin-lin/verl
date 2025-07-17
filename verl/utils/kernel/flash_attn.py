@@ -17,12 +17,12 @@ from verl.utils.device import is_cuda_available, is_npu_available
 if is_cuda_available:
     try:
         from flash_attn.bert_padding import index_first_axis, pad_input, rearrange, unpad_input
-    except ImportError:
-        raise ImportError("flash_attn is required when CUDA is available but not installed")
+    except ImportError as err:
+        raise ImportError("flash_attn is required when CUDA is available but not installed") from err
 elif is_npu_available:
     try:
-        from transformers.integrations.npu_flash_attention import index_first_axis, pad_input, rearrange, unpad_input
-    except ImportError:
-        raise ImportError("transformers with NPU flash attention support is required when NPU is available")
+        from transformers.integrations.npu_flash_attention import index_first_axis, pad_input, rearrange, unpad_input  # noqa: F401
+    except ImportError as err:
+        raise ImportError("transformers with NPU flash attention support is required when NPU is available") from err
 else:
     raise RuntimeError("Neither CUDA nor NPU is available. Flash attention functions require either CUDA or NPU.")

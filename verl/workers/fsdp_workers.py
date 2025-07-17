@@ -47,8 +47,6 @@ from verl.utils.device import (
     get_device_name,
     get_nccl_backend,
     get_torch_device,
-    is_cuda_available,
-    is_npu_available,
 )
 from verl.utils.flops_counter import FlopsCounter
 from verl.utils.fs import copy_to_local
