@@ -47,6 +47,7 @@ class CriticConfig(BaseConfig):
     """
 
     strategy: str
+    enable: Optional[bool] = None
     ppo_micro_batch_size_per_gpu: Optional[int] = None
 
     # For legacy reason configs related to batch_size are mutated in each role
