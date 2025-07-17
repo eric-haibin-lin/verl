@@ -112,6 +112,62 @@ class ActorConfig(BaseConfig):
     checkpoint: dict[str, Any] = field(default_factory=dict)
     optim: dict[str, Any] = field(default_factory=dict)
 
+    def __post_init__(self):
+        """Validate actor configuration parameters."""
+        if not self.use_dynamic_bsz:
+            if self.ppo_micro_batch_size is not None and self.ppo_micro_batch_size_per_gpu is not None:
+                raise ValueError(
+                    "[actor] You have set both 'actor.ppo_micro_batch_size' AND 'actor.ppo_micro_batch_size_per_gpu'. "
+                    "Please remove 'actor.ppo_micro_batch_size' because only '*_ppo_micro_batch_size_per_gpu' is "
+                    "supported (the former is deprecated)."
+                )
+
+        valid_loss_agg_modes = [
+            "token-mean",
+            "seq-mean-token-sum",
+            "seq-mean-token-mean",
+            "seq-mean-token-sum-norm",
+        ]
+        if self.loss_agg_mode not in valid_loss_agg_modes:
+            raise ValueError(f"Invalid loss_agg_mode: {self.loss_agg_mode}")
+
+    def validate(self, n_gpus: int, train_batch_size: int, model_config: dict = None):
+        """Validate actor configuration with runtime parameters."""
+        if not self.use_dynamic_bsz:
+            if train_batch_size < self.ppo_mini_batch_size:
+                raise ValueError(
+                    f"train_batch_size ({train_batch_size}) must be >= "
+                    f"actor.ppo_mini_batch_size ({self.ppo_mini_batch_size})"
+                )
+
+            sp_size = getattr(self, "ulysses_sequence_parallel_size", 1)
+            if self.ppo_micro_batch_size is not None:
+                if self.ppo_mini_batch_size % self.ppo_micro_batch_size != 0:
+                    raise ValueError(
+                        f"ppo_mini_batch_size ({self.ppo_mini_batch_size}) must be divisible by "
+                        f"ppo_micro_batch_size ({self.ppo_micro_batch_size})"
+                    )
+                if self.ppo_micro_batch_size * sp_size < n_gpus:
+                    raise ValueError(
+                        f"ppo_micro_batch_size ({self.ppo_micro_batch_size}) * "
+                        f"ulysses_sequence_parallel_size ({sp_size}) must be >= n_gpus ({n_gpus})"
+                    )
+
+    @staticmethod
+    def _check_mutually_exclusive(mbs, mbs_per_gpu, name: str):
+        """Validate mutually exclusive micro batch size configuration options."""
+        param = "ppo_micro_batch_size"
+        param_per_gpu = f"{param}_per_gpu"
+
+        if mbs is None and mbs_per_gpu is None:
+            raise ValueError(f"[{name}] Please set at least one of '{name}.{param}' or '{name}.{param_per_gpu}'.")
+
+        if mbs is not None and mbs_per_gpu is not None:
+            raise ValueError(
+                f"[{name}] You have set both '{name}.{param}' AND '{name}.{param_per_gpu}'. Please remove "
+                f"'{name}.{param}' because only '*_{param_per_gpu}' is supported (the former is deprecated)."
+            )
+
 
 @dataclass
 class MegatronActorConfig(ActorConfig):
@@ -165,3 +221,17 @@ class FSDPActorConfig(ActorConfig):
     entropy_from_logits_with_chunking: bool = False
     entropy_checkpointing: bool = False
     fsdp_config: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        """Validate FSDP actor configuration parameters."""
+        super().__post_init__()
+
+    def validate(self, n_gpus: int, train_batch_size: int, model_config: dict = None):
+        """Validate FSDP actor configuration with runtime parameters."""
+        super().validate(n_gpus, train_batch_size, model_config)
+
+        if self.strategy in {"fsdp", "fsdp2"} and self.ulysses_sequence_parallel_size > 1:
+            if model_config and not model_config.get("use_remove_padding", False):
+                raise ValueError(
+                    "When using sequence parallelism for actor/ref policy, you must enable `use_remove_padding`."
+                )

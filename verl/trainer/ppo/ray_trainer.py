@@ -450,14 +450,13 @@ class RayPPOTrainer:
                         f"'{name}.{param}' because only '*_{param_per_gpu}' is supported (the former is deprecated)."
                     )
 
-        if not config.actor_rollout_ref.actor.use_dynamic_bsz:
-            # actor: ppo_micro_batch_size vs. ppo_micro_batch_size_per_gpu
-            check_mutually_exclusive(
-                config.actor_rollout_ref.actor.ppo_micro_batch_size,
-                config.actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu,
-                "actor_rollout_ref.actor",
-            )
+        # Actor validation moved to ActorConfig.__post_init__ and validate()
+        from verl.utils.config import omega_conf_to_dataclass
 
+        actor_config = omega_conf_to_dataclass(config.actor_rollout_ref.actor)
+        actor_config.validate(n_gpus, config.data.train_batch_size, config.actor_rollout_ref.model)
+
+        if not config.actor_rollout_ref.actor.use_dynamic_bsz:
             if self.use_reference_policy:
                 # reference: log_prob_micro_batch_size vs. log_prob_micro_batch_size_per_gpu
                 check_mutually_exclusive(
@@ -479,29 +478,6 @@ class RayPPOTrainer:
                 config.reward_model.micro_batch_size, config.reward_model.micro_batch_size_per_gpu, "reward_model"
             )
 
-        # Actor
-        # check if train_batch_size is larger than ppo_mini_batch_size
-        # if NOT dynamic_bsz, we must ensure:
-        #    ppo_mini_batch_size is divisible by ppo_micro_batch_size
-        #    ppo_micro_batch_size * sequence_parallel_size >= n_gpus
-        if not config.actor_rollout_ref.actor.use_dynamic_bsz:
-            assert config.data.train_batch_size >= config.actor_rollout_ref.actor.ppo_mini_batch_size
-            sp_size = config.actor_rollout_ref.actor.get("ulysses_sequence_parallel_size", 1)
-            if config.actor_rollout_ref.actor.ppo_micro_batch_size is not None:
-                assert (
-                    config.actor_rollout_ref.actor.ppo_mini_batch_size
-                    % config.actor_rollout_ref.actor.ppo_micro_batch_size
-                    == 0
-                )
-                assert config.actor_rollout_ref.actor.ppo_micro_batch_size * sp_size >= n_gpus
-
-        assert config.actor_rollout_ref.actor.loss_agg_mode in [
-            "token-mean",
-            "seq-mean-token-sum",
-            "seq-mean-token-mean",
-            "seq-mean-token-sum-norm",
-        ], f"Invalid loss_agg_mode: {config.actor_rollout_ref.actor.loss_agg_mode}"
-
         if self.config.algorithm.use_kl_in_reward and config.actor_rollout_ref.actor.use_kl_loss:
             print("NOTICE: You have both enabled in-reward kl and kl loss.")
 
@@ -511,15 +487,6 @@ class RayPPOTrainer:
 
             critic_config = omega_conf_to_dataclass(config.critic)
             critic_config.validate(n_gpus, config.data.train_batch_size)
-
-        # Check if use_remove_padding is enabled when using sequence parallelism for fsdp
-        if config.actor_rollout_ref.actor.strategy in {"fsdp", "fsdp2"} and (
-            config.actor_rollout_ref.actor.get("ulysses_sequence_parallel_size", 1) > 1
-            or config.actor_rollout_ref.ref.get("ulysses_sequence_parallel_size", 1) > 1
-        ):
-            assert config.actor_rollout_ref.model.use_remove_padding, (
-                "When using sequence parallelism for actor/ref policy, you must enable `use_remove_padding`."
-            )
 
         if config.data.get("val_batch_size", None) is not None:
             print(

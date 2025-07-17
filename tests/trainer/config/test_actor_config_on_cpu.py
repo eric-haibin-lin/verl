@@ -133,6 +133,52 @@ class TestActorConfig(unittest.TestCase):
         config.ppo_mini_batch_size = 512  # This should work since it's not in frozen fields anymore
         self.assertEqual(config.ppo_mini_batch_size, 512)
 
+    def test_actor_config_validation_exceptions(self):
+        """Test that ActorConfig.__post_init__ raises appropriate validation exceptions."""
+        with self.assertRaises(ValueError) as cm:
+            ActorConfig(strategy="fsdp", loss_agg_mode="invalid-mode", use_dynamic_bsz=True)
+        self.assertIn("Invalid loss_agg_mode", str(cm.exception))
+
+        with self.assertRaises(ValueError) as cm:
+            ActorConfig(strategy="fsdp", use_dynamic_bsz=False, ppo_micro_batch_size=4, ppo_micro_batch_size_per_gpu=2)
+        self.assertIn("You have set both", str(cm.exception))
+
+        config = ActorConfig(
+            strategy="fsdp", use_dynamic_bsz=False, ppo_micro_batch_size=None, ppo_micro_batch_size_per_gpu=None
+        )
+        self.assertIsNotNone(config)  # Should not raise an exception
+
+    def test_fsdp_actor_config_validation_exceptions(self):
+        """Test that FSDPActorConfig.validate() raises appropriate validation exceptions."""
+        config = FSDPActorConfig(
+            strategy="fsdp",
+            ulysses_sequence_parallel_size=2,
+            use_dynamic_bsz=True,  # Skip batch size validation to focus on FSDP validation
+        )
+
+        model_config = {"use_remove_padding": False}
+        with self.assertRaises(ValueError) as cm:
+            config.validate(n_gpus=8, train_batch_size=256, model_config=model_config)
+        self.assertIn("you must enable `use_remove_padding`", str(cm.exception))
+
+    def test_actor_config_validate_method_exceptions(self):
+        """Test that ActorConfig.validate() raises appropriate validation exceptions."""
+        config = ActorConfig(
+            strategy="fsdp",
+            use_dynamic_bsz=False,
+            ppo_mini_batch_size=256,
+            ppo_micro_batch_size=8,
+            ppo_micro_batch_size_per_gpu=None,  # Ensure only one batch size setting is used
+        )
+
+        with self.assertRaises(ValueError) as cm:
+            config.validate(n_gpus=8, train_batch_size=128)
+        self.assertIn("train_batch_size", str(cm.exception))
+
+        with self.assertRaises(ValueError) as cm:
+            config.validate(n_gpus=16, train_batch_size=512)
+        self.assertIn("must be >= n_gpus", str(cm.exception))
+
 
 if __name__ == "__main__":
     unittest.main()
