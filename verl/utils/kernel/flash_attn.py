@@ -29,5 +29,3 @@ elif is_npu_available:
         )
     except ImportError as err:
         raise ImportError("transformers with NPU flash attention support is required when NPU is available") from err
-else:
-    raise RuntimeError("Neither CUDA nor NPU is available. Flash attention functions require either CUDA or NPU.")
