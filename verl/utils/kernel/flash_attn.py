@@ -21,7 +21,12 @@ if is_cuda_available:
         raise ImportError("flash_attn is required when CUDA is available but not installed") from err
 elif is_npu_available:
     try:
-        from transformers.integrations.npu_flash_attention import index_first_axis, pad_input, rearrange, unpad_input  # noqa: F401
+        from transformers.integrations.npu_flash_attention import (  # noqa: F401
+            index_first_axis,
+            pad_input,
+            rearrange,
+            unpad_input,
+        )
     except ImportError as err:
         raise ImportError("transformers with NPU flash attention support is required when NPU is available") from err
 else:
