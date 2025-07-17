@@ -20,6 +20,7 @@ from hydra import compose, initialize_config_dir
 
 from verl.trainer.config.config import CriticConfig, FSDPCriticConfig, MegatronCriticConfig
 from verl.utils.config import omega_conf_to_dataclass
+from verl.utils.profiler import ProfilerConfig
 
 
 class TestCriticConfig:
@@ -168,6 +169,34 @@ class TestCriticConfig:
 
         assert fsdp_config.forward_micro_batch_size == 16
         assert fsdp_config.forward_micro_batch_size_per_gpu == 8
+
+    def test_profiler_config_type_validation(self):
+        """Test that profiler field has correct type and validation."""
+        critic_config = CriticConfig(ppo_micro_batch_size_per_gpu=1, strategy="fsdp2")
+        assert isinstance(critic_config.profiler, ProfilerConfig)
+        assert critic_config.profiler.discrete is False
+        assert critic_config.profiler.all_ranks is False
+        assert critic_config.profiler.ranks == []
+
+        custom_profiler = ProfilerConfig(discrete=True, all_ranks=True, ranks=[0, 1])
+        critic_config_custom = CriticConfig(profiler=custom_profiler, ppo_micro_batch_size_per_gpu=1, strategy="fsdp2")
+        assert isinstance(critic_config_custom.profiler, ProfilerConfig)
+        assert critic_config_custom.profiler.discrete is True
+        assert critic_config_custom.profiler.all_ranks is True
+        assert critic_config_custom.profiler.ranks == [0, 1]
+
+        profiler1 = ProfilerConfig(discrete=True, ranks=[0, 1])
+        profiler2 = ProfilerConfig(all_ranks=True, ranks=[1, 2])
+
+        union_result = profiler1.union(profiler2)
+        assert union_result.discrete is True
+        assert union_result.all_ranks is True
+        assert set(union_result.ranks) == {0, 1, 2}
+
+        intersect_result = profiler1.intersect(profiler2)
+        assert intersect_result.discrete is False
+        assert intersect_result.all_ranks is False
+        assert intersect_result.ranks == [1]
 
     def test_critic_config_validation_logic(self):
         """Test the __post_init__ validation logic for CriticConfig."""
