@@ -5,7 +5,7 @@
 
 actor_rollout_ref:
   actor:
-    _target_: verl.workers.config.actor.FSDPActorConfig
+    _target_: verl.workers.config.FSDPActorConfig
     strategy: fsdp
     ppo_mini_batch_size: 256
     ppo_micro_batch_size: null
@@ -249,7 +249,7 @@ data:
     path: null
     name: null
 critic:
-  _target_: verl.workers.config.critic.FSDPCriticConfig
+  _target_: verl.workers.config.FSDPCriticConfig
   rollout_n: ${oc.select:actor_rollout_ref.rollout.n,1}
   strategy: fsdp
   enable: null

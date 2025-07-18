@@ -5,7 +5,7 @@
 # 4. Indentation level is respected for nested fields.
 
 # Target class for this configuration
-_target_: verl.workers.config.actor.ActorConfig
+_target_: verl.workers.config.ActorConfig
 
 # the abstract actor configs
 # fsdp, fsdp2 or megatron. must be set.
