@@ -12,21 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from verl.workers.config.actor import ActorConfig, FSDPActorConfig, MegatronActorConfig, PolicyLossConfig
-from verl.workers.config.critic import CriticConfig, FSDPCriticConfig, MegatronCriticConfig
-
-from .algorithm import AlgoConfig, FilterGroupsConfig, KLControlConfig, PFPPOConfig
+from .actor import ActorConfig, FSDPActorConfig, MegatronActorConfig, PolicyLossConfig
+from .critic import CriticConfig, FSDPCriticConfig, MegatronCriticConfig
+from .engine import FSDPEngineConfig, MegatronEngineConfig
 
 __all__ = [
     "ActorConfig",
-    "AlgoConfig",
-    "CriticConfig",
-    "FilterGroupsConfig",
+    "CriticConfig", 
     "FSDPActorConfig",
     "FSDPCriticConfig",
-    "KLControlConfig",
+    "FSDPEngineConfig",
     "MegatronActorConfig",
     "MegatronCriticConfig",
-    "PFPPOConfig",
+    "MegatronEngineConfig",
     "PolicyLossConfig",
 ]
