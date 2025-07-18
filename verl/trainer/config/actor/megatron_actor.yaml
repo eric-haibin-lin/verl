@@ -46,10 +46,16 @@ optim:
 
 megatron:
 
+  # Required when using verl.utils.omega_conf_to_dataclass to instantiate dataclass configs
+  _target_: verl.workers.config.McoreEngineConfig
+
+  # Whether to offload model parameters to CPU
   param_offload: False
 
+  # Whether to offload gradients to CPU
   grad_offload: False
 
+  # Whether to offload optimizer state to CPU
   optimizer_offload: False
 
   tensor_model_parallel_size: 1

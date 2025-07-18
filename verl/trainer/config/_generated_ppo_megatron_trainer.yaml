@@ -60,6 +60,7 @@ actor_rollout_ref:
     data_loader_seed: null
     load_weight: true
     megatron:
+      _target_: verl.workers.config.McoreEngineConfig
       param_offload: false
       grad_offload: false
       optimizer_offload: false
