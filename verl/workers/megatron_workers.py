@@ -26,11 +26,12 @@ import torch
 import torch.distributed
 from codetiming import Timer
 from megatron.core import parallel_state as mpu
-from omegaconf import DictConfig, OmegaConf, open_dict
+from omegaconf import DictConfig, OmegaConf
 
 from verl import DataProto
 from verl.single_controller.base.decorator import Dispatch, register
 from verl.single_controller.base.megatron.worker import MegatronWorker
+from verl.trainer.config import McoreCriticConfig
 from verl.utils import hf_tokenizer
 from verl.utils.checkpoint.megatron_checkpoint_manager import MegatronCheckpointManager
 from verl.utils.config import omega_conf_to_dataclass
@@ -429,12 +430,9 @@ class ActorRolloutRefWorker(MegatronWorker, DistProfilerExtension):
                 log_gpu_memory_usage("After offload actor optimizer during init", logger=logger)
 
         if self._is_actor:
-            OmegaConf.set_struct(self.config.actor, True)
-            with open_dict(self.config.actor):
-                use_fused_kernels = self.config.model.get("use_fused_kernels", False)
-                self.config.actor.use_fused_kernels = use_fused_kernels
+            actor_cfg = omega_conf_to_dataclass(self.config.actor)
             self.actor = MegatronPPOActor(
-                config=self.config.actor,
+                config=actor_cfg,
                 model_config=self.actor_model_config,
                 hf_config=self.hf_config,
                 tf_config=self.tf_config,
@@ -714,12 +712,10 @@ class AsyncActorRolloutRefWorker(ActorRolloutRefWorker):
 
 
 class CriticWorker(MegatronWorker, DistProfilerExtension):
-    def __init__(self, config):
+    def __init__(self, config: McoreCriticConfig):
         MegatronWorker.__init__(self)
-        DistProfilerExtension.__init__(
-            self, DistProfiler(rank=self.rank, config=omega_conf_to_dataclass(config.get("profiler")))
-        )
-        self.config = config
+        DistProfilerExtension.__init__(self, DistProfiler(rank=self.rank, config=config.get("profiler")))
+        self.config: McoreCriticConfig = config
 
         # NOTE(sgm): We utilize colocate WorkerGroup by default.
         # As a result, Workers for different model share the same process.
