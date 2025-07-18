@@ -58,9 +58,7 @@ class DataParallelPPOActor(BasePPOActor):
         actor_optimizer (torch.optim.Optimizer, optional): Actor optimizer. Defaults to None.
     """
 
-    def __init__(
-        self, config: ActorConfig, actor_module: nn.Module, actor_optimizer: torch.optim.Optimizer = None
-    ):
+    def __init__(self, config: ActorConfig, actor_module: nn.Module, actor_optimizer: torch.optim.Optimizer = None):
         """When optimizer is None, it is Reference Policy"""
         super().__init__(config)
         self.actor_module = actor_module

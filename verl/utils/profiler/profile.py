@@ -17,7 +17,7 @@ from typing import Callable, Optional
 
 import torch
 import torch.distributed
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 
 from .config import ProfilerConfig
 
@@ -41,7 +41,7 @@ class Profiler:
 
     def __init__(self, config):
         # note : if we do not set use_profile, it will be set as None, so that all function will be skip
-        if not isinstance(config, OmegaConf.DictConfig):
+        if not isinstance(config, DictConfig):
             config = OmegaConf.create(config)
         self.config = config
         self.skip_prof = False
