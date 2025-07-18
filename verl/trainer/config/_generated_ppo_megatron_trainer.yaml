@@ -33,6 +33,7 @@ actor_rollout_ref:
     ppo_epochs: 1
     shuffle: false
     checkpoint:
+      _target_: verl.trainer.config.CheckpointConfig
       save_contents:
       - model
       - optimizer
@@ -331,6 +332,7 @@ critic:
   cliprange_value: 0.5
   loss_agg_mode: ${oc.select:actor_rollout_ref.actor.loss_agg_mode,token-mean}
   checkpoint:
+    _target_: verl.trainer.config.CheckpointConfig
     save_contents:
     - model
     - optimizer

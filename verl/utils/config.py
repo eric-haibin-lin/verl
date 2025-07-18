@@ -41,8 +41,9 @@ def omega_conf_to_dataclass(config: DictConfig | dict, dataclass_type: Optional[
 
     if dataclass_type is None:
         assert "_target_" in config, (
-            "When dataclass_type is not provided, config must contain _target_."
-            "See trainer/config/ppo_trainer.yaml algorithm section for an example."
+            "When dataclass_type is not provided, config must contain _target_. "
+            "See trainer/config/ppo_trainer.yaml algorithm section for an example. "
+            f"Got config: {config}"
         )
         from hydra.utils import instantiate
 

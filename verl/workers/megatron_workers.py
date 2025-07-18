@@ -204,7 +204,7 @@ class ActorRolloutRefWorker(MegatronWorker, DistProfilerExtension):
                     parallel_model.to(get_device_name())
                     return parallel_model
 
-                override_ddp_config = self.config.megatron.get("override_ddp_config", {})
+                override_ddp_config = self.config.actor.megatron.get("override_ddp_config", {})
                 return get_model(
                     megatron_actor_model_provider,
                     wrap_with_ddp=wrap_with_ddp,
@@ -395,7 +395,7 @@ class ActorRolloutRefWorker(MegatronWorker, DistProfilerExtension):
         if self._is_actor:
             override_transformer_config = self.config.actor.megatron.get("override_transformer_config", {})
         elif self._is_ref:
-            override_transformer_config = self.config.megatron.get("override_transformer_config", {})
+            override_transformer_config = self.config.ref.megatron.get("override_transformer_config", {})
         else:
             override_transformer_config = {}
         self.param_dtype = torch.bfloat16

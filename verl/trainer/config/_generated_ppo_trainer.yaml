@@ -33,11 +33,13 @@ actor_rollout_ref:
     ppo_epochs: 1
     shuffle: false
     checkpoint:
+      _target_: verl.trainer.config.CheckpointConfig
       save_contents:
       - model
       - optimizer
       - extra
       load_contents: ${.save_contents}
+      async_save: false
     optim:
       lr: 1.0e-06
       lr_warmup_steps_ratio: 0.0
@@ -54,6 +56,7 @@ actor_rollout_ref:
     entropy_from_logits_with_chunking: false
     entropy_checkpointing: false
     fsdp_config:
+      _target_: verl.workers.config.FSDPEngineConfig
       wrap_policy:
         min_num_params: 0
       param_offload: false
@@ -302,11 +305,13 @@ critic:
   cliprange_value: 0.5
   loss_agg_mode: ${oc.select:actor_rollout_ref.actor.loss_agg_mode,token-mean}
   checkpoint:
+    _target_: verl.trainer.config.CheckpointConfig
     save_contents:
     - model
     - optimizer
     - extra
     load_contents: ${.save_contents}
+    async_save: false
   profiler:
     _target_: verl.utils.profiler.ProfilerConfig
     discrete: false

@@ -12,10 +12,6 @@ data_loader_seed: null
 
 load_weight: True
 
-checkpoint:
-
-  async_save: False
-
 optim:
   _target_: verl.workers.config.McoreOptimizerConfig
   optimizer: adam
