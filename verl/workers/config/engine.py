@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -45,6 +46,7 @@ class McoreEngineConfig(BaseConfig):
         use_mbridge (bool): Whether to use MBridge for communication.
     """
 
+    # sequence_parallel is not listed as a frozen field for auto-correction purpose
     _frozen_fields = [
         "param_offload",
         "grad_offload",
@@ -55,7 +57,6 @@ class McoreEngineConfig(BaseConfig):
         "pipeline_model_parallel_size",
         "virtual_pipeline_model_parallel_size",
         "context_parallel_size",
-        "sequence_parallel",
         "use_distributed_optimizer",
         "use_dist_checkpointing",
         "dist_checkpointing_path",
@@ -82,6 +83,12 @@ class McoreEngineConfig(BaseConfig):
     override_ddp_config: dict[str, Any] = field(default_factory=dict)
     override_transformer_config: dict[str, Any] = field(default_factory=dict)
     use_mbridge: bool = False
+
+    def __post_init__(self) -> None:
+        """config validation logics go here"""
+        if self.tensor_model_parallel_size == 1:
+            warnings.warn("set sequence parallel to false as TP size is 1", stacklevel=2)
+            self.sequence_parallel = False
 
 
 @dataclass
