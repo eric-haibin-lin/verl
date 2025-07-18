@@ -80,7 +80,6 @@ actor_rollout_ref:
       override_transformer_config: {}
       use_mbridge: false
     profile:
-      _target_: verl.utils.profiler.ProfilerConfig
       use_profile: false
       profile_ranks: null
       step_start: -1
@@ -109,7 +108,6 @@ actor_rollout_ref:
       override_transformer_config: ${oc.select:actor_rollout_ref.actor.megatron.override_transformer_config,{}}
       use_mbridge: ${oc.select:actor_rollout_ref.actor.megatron.use_mbridge,False}
     profile:
-      _target_: verl.utils.profiler.ProfilerConfig
       use_profile: false
       profile_ranks: null
       step_start: -1

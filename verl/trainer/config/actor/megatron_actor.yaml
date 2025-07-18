@@ -90,9 +90,6 @@ megatron:
 # profile the actor model in `update_policy` 
 profile:
 
-  # Required when using verl.utils.omega_conf_to_dataclass to instantiate dataclass configs
-  _target_: verl.utils.profiler.ProfilerConfig
-
   # turn it on when you want to profile the actor model
   use_profile: False
 

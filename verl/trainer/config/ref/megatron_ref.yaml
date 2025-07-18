@@ -23,7 +23,6 @@ megatron:
   use_mbridge: ${oc.select:actor_rollout_ref.actor.megatron.use_mbridge,False}
 
 profile:
-  _target_: verl.utils.profiler.ProfilerConfig
   use_profile: False
   profile_ranks: null
   step_start: -1
