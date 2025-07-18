@@ -15,7 +15,7 @@
 import os
 import unittest
 
-from verl.trainer.config import ActorConfig, FSDPActorConfig, MegatronActorConfig
+from verl.workers.config.actor import ActorConfig, FSDPActorConfig, MegatronActorConfig
 from verl.utils.config import omega_conf_to_dataclass
 
 
@@ -25,13 +25,13 @@ class TestActorConfig(unittest.TestCase):
     def test_config_inheritance(self):
         """Test that the inheritance hierarchy works correctly."""
         megatron_dict = {
-            "_target_": "verl.trainer.config.MegatronActorConfig",
+            "_target_": "verl.workers.config.actor.MegatronActorConfig",
             "strategy": "megatron",
             "ppo_mini_batch_size": 256,
             "clip_ratio": 0.2,
         }
         fsdp_dict = {
-            "_target_": "verl.trainer.config.FSDPActorConfig",
+            "_target_": "verl.workers.config.actor.FSDPActorConfig",
             "strategy": "fsdp",
             "ppo_mini_batch_size": 256,
             "clip_ratio": 0.2,
@@ -85,7 +85,7 @@ class TestActorConfig(unittest.TestCase):
     def test_config_get_method(self):
         """Test the get method for backward compatibility."""
         config_dict = {
-            "_target_": "verl.trainer.config.ActorConfig",
+            "_target_": "verl.workers.config.actor.ActorConfig",
             "strategy": "fsdp",
             "ppo_mini_batch_size": 256,
         }
@@ -100,7 +100,7 @@ class TestActorConfig(unittest.TestCase):
     def test_config_dict_like_access(self):
         """Test dictionary-like access to config fields."""
         config_dict = {
-            "_target_": "verl.trainer.config.ActorConfig",
+            "_target_": "verl.workers.config.actor.ActorConfig",
             "strategy": "fsdp",
             "ppo_mini_batch_size": 256,
         }
@@ -118,7 +118,7 @@ class TestActorConfig(unittest.TestCase):
     def test_frozen_fields_modification_raises_exception(self):
         """Test that modifying frozen fields raises an exception."""
         config_dict = {
-            "_target_": "verl.trainer.config.ActorConfig",
+            "_target_": "verl.workers.config.actor.ActorConfig",
             "strategy": "fsdp",
             "ppo_mini_batch_size": 256,
         }
