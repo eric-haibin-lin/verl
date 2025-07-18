@@ -15,8 +15,8 @@
 import os
 import unittest
 
-from verl.workers.config.actor import ActorConfig, FSDPActorConfig, MegatronActorConfig
 from verl.utils.config import omega_conf_to_dataclass
+from verl.workers.config.actor import ActorConfig, FSDPActorConfig, MegatronActorConfig
 
 
 class TestActorConfig(unittest.TestCase):

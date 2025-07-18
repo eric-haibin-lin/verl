@@ -18,7 +18,7 @@ from .engine import FSDPEngineConfig, MegatronEngineConfig
 
 __all__ = [
     "ActorConfig",
-    "FSDPActorConfig", 
+    "FSDPActorConfig",
     "MegatronActorConfig",
     "PolicyLossConfig",
     "CriticConfig",
