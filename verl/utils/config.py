@@ -52,6 +52,9 @@ def omega_conf_to_dataclass(config: DictConfig | dict, dataclass_type: Optional[
     if not is_dataclass(dataclass_type):
         raise ValueError(f"{dataclass_type} must be a dataclass")
     cfg = OmegaConf.create(config)  # in case it's a dict
+    # pop _target_ to avoid hydra instantiate error, as most dataclass do not have _target_
+    if "_target_" in cfg:
+        cfg.pop("_target_")
     cfg_from_dataclass = OmegaConf.structured(dataclass_type)
     # let cfg override the existing vals in `cfg_from_dataclass`
     cfg_merged = OmegaConf.merge(cfg_from_dataclass, cfg)
