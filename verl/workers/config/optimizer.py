@@ -17,6 +17,8 @@ from typing import Optional
 
 from verl.base_config import BaseConfig
 
+__all__ = ["OptimizerConfig", "FSDPOptimizerConfig", "McoreOptimizerConfig"]
+
 
 @dataclass(kw_only=True)
 class OptimizerConfig(BaseConfig):

@@ -93,6 +93,7 @@ actor_rollout_ref:
     log_prob_use_dynamic_bsz: ${oc.select:actor_rollout_ref.actor.use_dynamic_bsz,false}
     log_prob_max_token_len_per_gpu: ${oc.select:actor_rollout_ref.actor.ppo_max_token_len_per_gpu,16384}
     megatron:
+      _target_: verl.workers.config.MegatronEngineConfig
       param_offload: false
       tensor_model_parallel_size: 1
       expert_model_parallel_size: 1
@@ -392,6 +393,7 @@ reward_model:
     ranks: []
   nccl_timeout: 600
   megatron:
+    _target_: verl.workers.config.MegatronEngineConfig
     param_offload: false
     tensor_model_parallel_size: 1
     expert_model_parallel_size: 1

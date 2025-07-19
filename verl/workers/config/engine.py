@@ -18,6 +18,8 @@ from typing import Any, Optional
 
 from verl.base_config import BaseConfig
 
+__all__ = ["FSDPEngineConfig", "McoreEngineConfig"]
+
 
 @dataclass
 class McoreEngineConfig(BaseConfig):
@@ -47,24 +49,7 @@ class McoreEngineConfig(BaseConfig):
     """
 
     # sequence_parallel is not listed as a frozen field for auto-correction purpose
-    _frozen_fields = [
-        "param_offload",
-        "grad_offload",
-        "optimizer_offload",
-        "tensor_model_parallel_size",
-        "expert_model_parallel_size",
-        "expert_tensor_parallel_size",
-        "pipeline_model_parallel_size",
-        "virtual_pipeline_model_parallel_size",
-        "context_parallel_size",
-        "use_distributed_optimizer",
-        "use_dist_checkpointing",
-        "dist_checkpointing_path",
-        "seed",
-        "override_ddp_config",
-        "override_transformer_config",
-        "use_mbridge",
-    ]
+    _mutable_fields = BaseConfig._mutable_fields + ["sequence_parallel"]
 
     param_offload: bool = False
     grad_offload: bool = False

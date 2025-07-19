@@ -14,6 +14,7 @@
 
 import collections
 from dataclasses import (
+    FrozenInstanceError,
     dataclass,
     field,
     fields,  # Import the fields function to inspect dataclass fields
@@ -24,23 +25,25 @@ from typing import Any
 # BaseConfig class inherits from collections.abc.Mapping, which means it can act like a dictionary
 @dataclass(kw_only=True)
 class BaseConfig(collections.abc.Mapping):
-    """The BaseConfig provides omegaconf DictConfig-like interface for a dataclass config.
+    """The BaseConfig provides dict-like interface for a dataclass config.
 
-    The BaseConfig class implements the Mapping Abstract Base Class.
+    By default all fields in the config is not mutable, unless specified in
+    "_mutable_fields". The BaseConfig class implements the Mapping Abstract Base Class.
     This allows instances of this class to be used like dictionaries.
     """
 
+    _mutable_fields = []
     extra: dict[str, Any] = field(default_factory=dict)
 
     def __setattr__(self, name: str, value):
         # if the field already exists (i.e. was set in __init__)
         # and is in our frozen list, block assignment
-        if hasattr(self, "_frozen_fields") and name in self._frozen_fields and name in self.__dict__:
-            from dataclasses import FrozenInstanceError
+        if hasattr(self, "_mutable_fields") and name in self._mutable_fields and name in self.__dict__:
+            # do the normal thing
+            super().__setattr__(name, value)
 
-            raise FrozenInstanceError(f"Field '{name}' is frozen and cannot be modified")
-        # otherwise do the normal thing
-        super().__setattr__(name, value)
+        # otherwise, raise Exception on mutating frozen fields
+        raise FrozenInstanceError(f"Field '{name}' is frozen and cannot be modified")
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get the value associated with the given key. If the key does not exist, return the default value.

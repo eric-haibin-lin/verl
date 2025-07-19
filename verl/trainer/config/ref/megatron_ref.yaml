@@ -7,6 +7,7 @@ defaults:
 strategy: megatron
 
 megatron:
+  _target_: verl.workers.config.MegatronEngineConfig
   param_offload: False
   tensor_model_parallel_size: 1
   expert_model_parallel_size: 1
