@@ -19,11 +19,12 @@ from verl.base_config import BaseConfig
 from verl.trainer.config import BaseModelConfig, CheckpointConfig
 from verl.utils.profiler import ProfilerConfig
 from verl.workers.config.optimizer import OptimizerConfig
+from omegaconf import MISSING
 
 from .engine import FSDPEngineConfig
 
 
-@dataclass(kw_only=True)
+@dataclass
 class CriticConfig(BaseConfig):
     """Configuration for critic model training.
 
@@ -54,8 +55,7 @@ class CriticConfig(BaseConfig):
         "ppo_mini_batch_size",
     ]
 
-    strategy: str
-
+    strategy: str = MISSING
     ppo_micro_batch_size_per_gpu: Optional[int] = None
     enable: Optional[bool] = None
     rollout_n: int = 1
@@ -75,6 +75,7 @@ class CriticConfig(BaseConfig):
 
     def __post_init__(self):
         """Validate critic configuration parameters."""
+        assert self.strategy != MISSING
         if not self.use_dynamic_bsz:
             self._check_mutually_exclusive(self.ppo_micro_batch_size, self.ppo_micro_batch_size_per_gpu, "critic")
 

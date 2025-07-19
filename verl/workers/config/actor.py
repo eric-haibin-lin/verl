@@ -14,11 +14,10 @@
 
 from dataclasses import dataclass, field
 from typing import Any, Optional
-
+from omegaconf import MISSING
 from verl.base_config import BaseConfig
 
 __all__ = ["PolicyLossConfig", "ActorConfig", "FSDPActorConfig", "McoreActorConfig"]
-
 
 @dataclass
 class PolicyLossConfig(BaseConfig):
@@ -43,7 +42,7 @@ class PolicyLossConfig(BaseConfig):
     ppo_kl_coef: float = 0.1
 
 
-@dataclass(kw_only=True)
+@dataclass
 class ActorConfig(BaseConfig):
     """Configuration for actor model training.
 
@@ -81,7 +80,7 @@ class ActorConfig(BaseConfig):
         "ppo_micro_batch_size_per_gpu",
     ]
 
-    strategy: str
+    strategy: str = MISSING
     ppo_mini_batch_size: int = 256
     ppo_micro_batch_size: Optional[int] = None
     ppo_micro_batch_size_per_gpu: Optional[int] = None
@@ -106,6 +105,7 @@ class ActorConfig(BaseConfig):
 
     def __post_init__(self):
         """Validate actor configuration parameters."""
+        assert self.strategy != MISSING
         if not self.use_dynamic_bsz:
             if self.ppo_micro_batch_size is not None and self.ppo_micro_batch_size_per_gpu is not None:
                 raise ValueError(
