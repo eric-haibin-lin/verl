@@ -16,12 +16,14 @@ import collections
 from dataclasses import (
     FrozenInstanceError,
     field,
-    fields,  # Import the fields function to inspect dataclass fields
+    fields,
+    dataclass
 )
 from typing import Any
 
 
 # BaseConfig class inherits from collections.abc.Mapping, which means it can act like a dictionary
+@dataclass
 class BaseConfig(collections.abc.Mapping):
     """The BaseConfig provides dict-like interface for a dataclass config.
 
@@ -30,16 +32,17 @@ class BaseConfig(collections.abc.Mapping):
     This allows instances of this class to be used like dictionaries.
     """
 
-    _mutable_fields: set[str] = {"extra"}
+    _mutable_fields: set[str] = field(default_factory=lambda: {"extra"})
     extra: dict[str, Any] = field(default_factory=dict)
 
     def __setattr__(self, name: str, value):
         # if the field already exists (i.e. was set in __init__)
         # and is in our frozen list, block assignment
         frozen_fields = set(self.__dict__.keys())
-        for f in self._mutable_fields:
-            if f in frozen_fields:
-                frozen_fields.remove(f)
+        if hasattr(self, '_mutable_fields'):
+            for f in self._mutable_fields:
+                if f in frozen_fields:
+                    frozen_fields.remove(f)
         if name in frozen_fields:
             # raise Exception on mutating frozen fields
             raise FrozenInstanceError(f"Field '{name}' is frozen and cannot be modified")
