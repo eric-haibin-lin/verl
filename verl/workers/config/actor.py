@@ -18,6 +18,8 @@ from typing import Any, Optional
 from omegaconf import MISSING
 
 from verl.base_config import BaseConfig
+from verl.trainer.config import CheckpointConfig
+from verl.workers.config import FSDPEngineConfig, McoreEngineConfig, OptimizerConfig
 
 __all__ = ["PolicyLossConfig", "ActorConfig", "FSDPActorConfig", "McoreActorConfig"]
 
@@ -102,8 +104,8 @@ class ActorConfig(BaseConfig):
     kl_loss_type: str = "low_var_kl"
     ppo_epochs: int = 1
     shuffle: bool = False
-    checkpoint: dict[str, Any] = field(default_factory=dict)
-    optim: dict[str, Any] = field(default_factory=dict)
+    checkpoint: CheckpointConfig = field(default_factory=CheckpointConfig)
+    optim: OptimizerConfig = field(default_factory=OptimizerConfig)
     use_fused_kernels: bool = False
 
     def __post_init__(self):
@@ -181,7 +183,7 @@ class McoreActorConfig(ActorConfig):
     strategy: str = "megatron"
     data_loader_seed: Optional[int] = None
     load_weight: bool = True
-    megatron: dict[str, Any] = field(default_factory=dict)
+    megatron: McoreEngineConfig = field(default_factory=McoreEngineConfig)
     profile: dict[str, Any] = field(default_factory=dict)
 
 
@@ -207,7 +209,7 @@ class FSDPActorConfig(ActorConfig):
     ulysses_sequence_parallel_size: int = 1
     entropy_from_logits_with_chunking: bool = False
     entropy_checkpointing: bool = False
-    fsdp_config: dict[str, Any] = field(default_factory=dict)
+    fsdp_config: FSDPEngineConfig = field(default_factory=FSDPEngineConfig)
     use_remove_padding: bool = False
 
     def __post_init__(self):

@@ -20,9 +20,9 @@ from omegaconf import MISSING
 from verl.base_config import BaseConfig
 from verl.trainer.config import BaseModelConfig, CheckpointConfig
 from verl.utils.profiler import ProfilerConfig
-from verl.workers.config.optimizer import OptimizerConfig
+from verl.workers.config import OptimizerConfig
 
-from .engine import FSDPEngineConfig
+from .engine import FSDPEngineConfig, McoreEngineConfig
 
 __all__ = ["CriticConfig", "FSDPCriticConfig", "McoreCriticConfig", "McoreCriticModelCfg", "FSDPCriticModelCfg"]
 
@@ -147,7 +147,7 @@ class McoreCriticConfig(CriticConfig):
 
     strategy: str = "megatron"
     nccl_timeout: int = 600
-    megatron: dict[str, Any] = field(default_factory=dict)
+    megatron: McoreEngineConfig = field(default_factory=McoreEngineConfig)
     load_weight: bool = True
     data_loader_seed: Optional[int] = None
 

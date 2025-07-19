@@ -428,7 +428,6 @@ algorithm:
     target_kl: 0.1
   use_pf_ppo: false
   pf_ppo:
-    _target_: verl.trainer.config.PFPPOConfig
     reweight_method: pow
     weight_pow: 2.0
 ray_init:
