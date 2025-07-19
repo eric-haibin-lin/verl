@@ -22,6 +22,7 @@ from verl.base_config import BaseConfig
 __all__ = ["OptimizerConfig", "FSDPOptimizerConfig", "McoreOptimizerConfig"]
 
 
+@dataclass
 class OptimizerConfig(BaseConfig):
     """Base optimizer configuration.
 

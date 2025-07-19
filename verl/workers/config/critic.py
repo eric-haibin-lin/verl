@@ -53,10 +53,11 @@ class CriticConfig(BaseConfig):
         enable (Optional[bool]): Whether to enable the critic.
     """
 
-    _mutable_fields = BaseConfig._mutable_fields + [
+    _mutable_fields = BaseConfig._mutable_fields | {
         "ppo_micro_batch_size_per_gpu",
         "ppo_mini_batch_size",
-    ]
+        "ppo_micro_batch_size",
+    }
 
     strategy: str = MISSING
     ppo_micro_batch_size_per_gpu: Optional[int] = None
@@ -168,10 +169,10 @@ class FSDPCriticConfig(CriticConfig):
         grad_clip (float): Gradient clipping for critic updates.
     """
 
-    _mutable_fields = CriticConfig._mutable_fields + [
+    _mutable_fields = CriticConfig._mutable_fields | {
         "forward_micro_batch_size",
         "forward_micro_batch_size_per_gpu",
-    ]
+    }
 
     strategy: str = "fsdp"
     forward_micro_batch_size: int = 1

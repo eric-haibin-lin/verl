@@ -49,7 +49,7 @@ class McoreEngineConfig(BaseConfig):
     """
 
     # sequence_parallel is not listed as a frozen field for auto-correction purpose
-    _mutable_fields = BaseConfig._mutable_fields + ["sequence_parallel"]
+    _mutable_fields = BaseConfig._mutable_fields | {"sequence_parallel"}
 
     param_offload: bool = False
     grad_offload: bool = False

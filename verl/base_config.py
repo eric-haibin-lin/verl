@@ -30,24 +30,22 @@ class BaseConfig(collections.abc.Mapping):
     This allows instances of this class to be used like dictionaries.
     """
 
-    _mutable_fields = ["extra"]
+    _mutable_fields: set[str] = {"extra"}
     extra: dict[str, Any] = field(default_factory=dict)
 
     def __setattr__(self, name: str, value):
         # if the field already exists (i.e. was set in __init__)
         # and is in our frozen list, block assignment
-        if (
-            name == "extra"
-            or hasattr(self, "_mutable_fields")
-            and name in self._mutable_fields
-            and name in self.__dict__
-        ):
-            # do the normal thing
-            super().__setattr__(name, value)
-            return
+        frozen_fields = set(self.__dict__.keys())
+        for f in self._mutable_fields:
+            if f in frozen_fields:
+                frozen_fields.remove(f)
+        if name in frozen_fields:
+            # raise Exception on mutating frozen fields
+            raise FrozenInstanceError(f"Field '{name}' is frozen and cannot be modified")
 
-        # otherwise, raise Exception on mutating frozen fields
-        raise FrozenInstanceError(f"Field '{name}' is frozen and cannot be modified")
+        # do the normal thing
+        super().__setattr__(name, value)
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get the value associated with the given key. If the key does not exist, return the default value.

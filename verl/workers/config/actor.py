@@ -77,11 +77,11 @@ class ActorConfig(BaseConfig):
         use_fused_kernels (bool): Whether to use custom fused kernels (e.g., FlashAttention, fused MLP).
     """
 
-    _mutable_fields = BaseConfig._mutable_fields + [
+    _mutable_fields = BaseConfig._mutable_fields | {
         "ppo_mini_batch_size",
         "ppo_micro_batch_size",
         "ppo_micro_batch_size_per_gpu",
-    ]
+    }
 
     strategy: str = MISSING
     ppo_mini_batch_size: int = 256
