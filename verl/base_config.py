@@ -13,12 +13,7 @@
 # limitations under the License.
 
 import collections
-from dataclasses import (
-    FrozenInstanceError,
-    field,
-    fields,
-    dataclass
-)
+from dataclasses import FrozenInstanceError, dataclass, field, fields
 from typing import Any
 
 
@@ -39,7 +34,7 @@ class BaseConfig(collections.abc.Mapping):
         # if the field already exists (i.e. was set in __init__)
         # and is in our frozen list, block assignment
         frozen_fields = set(self.__dict__.keys())
-        if hasattr(self, '_mutable_fields'):
+        if hasattr(self, "_mutable_fields"):
             for f in self._mutable_fields:
                 if f in frozen_fields:
                     frozen_fields.remove(f)

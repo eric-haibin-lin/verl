@@ -20,9 +20,9 @@ from omegaconf import MISSING
 from verl.base_config import BaseConfig
 from verl.trainer.config import BaseModelConfig, CheckpointConfig
 from verl.utils.profiler import ProfilerConfig
-from verl.workers.config import OptimizerConfig
 
 from .engine import FSDPEngineConfig, McoreEngineConfig
+from .optimizer import OptimizerConfig
 
 __all__ = ["CriticConfig", "FSDPCriticConfig", "McoreCriticConfig", "McoreCriticModelCfg", "FSDPCriticModelCfg"]
 
