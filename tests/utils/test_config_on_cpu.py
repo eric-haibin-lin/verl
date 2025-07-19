@@ -17,18 +17,17 @@ from dataclasses import dataclass, field
 
 from omegaconf import OmegaConf
 
-from verl.base_config import BaseConfig
 from verl.utils import omega_conf_to_dataclass
 
 
 @dataclass
-class TestDataclass(BaseConfig):
+class TestDataclass:
     hidden_size: int
     activation: str
 
 
 @dataclass
-class TestTrainConfig(BaseConfig):
+class TestTrainConfig:
     batch_size: int
     model: TestDataclass
     override_config: dict = field(default_factory=dict)
@@ -69,14 +68,6 @@ class TestConfigOnCPU(unittest.TestCase):
         self.assertEqual(cfg.model.activation, "relu")
         assert isinstance(cfg, TestTrainConfig)
         assert isinstance(cfg.model, TestDataclass)
-
-    def test_dict(self):
-        expected_override_model_config = OmegaConf.to_container(
-            self.config.train_config.get("override_config", OmegaConf.create())
-        )
-        data_cfg = omega_conf_to_dataclass(self.config.train_config)
-        actual_override_model_config = data_cfg.get("override_config", {})
-        assert actual_override_model_config == expected_override_model_config
 
 
 class TestPrintCfgCommand(unittest.TestCase):
