@@ -24,6 +24,8 @@ from verl.workers.config.optimizer import OptimizerConfig
 
 from .engine import FSDPEngineConfig
 
+__all__ = ["CriticConfig", "FSDPCriticConfig", "McoreCriticConfig", "McoreCriticModelCfg", "FSDPCriticModelCfg"]
+
 
 @dataclass
 class CriticConfig(BaseConfig):
