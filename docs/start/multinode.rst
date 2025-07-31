@@ -64,8 +64,8 @@ Submit job to ray cluster
 .. image:: https://github.com/eric-haibin-lin/verl-community/blob/main/docs/ray/job.png?raw=true
 .. image:: https://github.com/eric-haibin-lin/verl-community/blob/main/docs/ray/job_detail.png?raw=true
 
-Option 2: Launch via SkyPilot
---------------------------------------
+Option 2: Launch via SkyPilot on Kubernetes or clouds
+------------------------------------------------------
 
 Step 1: Setup SkyPilot
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -84,6 +84,9 @@ SkyPilot can support different clouds, here we use GCP as example. `install skyp
     # This will generate ~/.config/gcloud/application_default_credentials.json.
     gcloud auth application-default login
 
+    # Check if the GCP credential is correctly setup.
+    sky check gcp
+
 .. image:: https://github.com/yottalabsai/open-source/blob/main/static/verl/setup_skypilot.png?raw=true
 
 Step 2: Prepare dataset
@@ -98,10 +101,9 @@ Step 2: Prepare dataset
 
 Step 3: Submit a job with SkyPilot
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1. Create a ``verl-cluster.yml`` with the following content:
+1. Create a SkyPilot YAML ``verl-cluster.yml`` with the following content:
 
-.. parsed-literal:: workdir: .  will sync all the data to the remote cluster. so put your yaml in a separate directory.
- WANDB_API_KEY: <replace with your wandb api key>
+.. parsed-literal:: workdir: .  will sync all the data in the current dir to the remote cluster.
 
 .. code-block:: yaml
 
@@ -109,6 +111,7 @@ Step 3: Submit a job with SkyPilot
      accelerators: L4:1 # every node has 1 L4 GPU
      image_id: docker:verlai/verl:base-verl0.5-cu126-cudnn9.8-torch2.7.0-fa2.7.4
      memory: 64+        # every node has 64 GB memory
+     ports: 8265        # expose port for ray dashboard
 
    num_nodes: 2         # cluster size
 
@@ -117,10 +120,10 @@ Step 3: Submit a job with SkyPilot
    # Here, '.' means synchronizing the directory where the sky submit command is currently run.
    workdir: .
 
-   # --------------- (envs) ---------------
-   envs:
+   # --------------- (secrets) ---------------
+   secrets:
      ## your wandb api key ##
-     WANDB_API_KEY: <replace with your wandb api key>
+     WANDB_API_KEY: null
 
    # --------------- File Mounts/Data Upload (file_mounts) ---------------
    # If your dataset (gsm8k folder) is local, it needs to be uploaded to the remote cluster.
@@ -218,11 +221,12 @@ Step 3: Submit a job with SkyPilot
 
 .. code-block:: bash
 
-    sky launch -c ray-verl-cluster verl-cluster.yml -d
-    # View logs with the cluster name. The 'sky launch' command will also print the exact command to use.
-    sky logs ray-verl-cluster
+    export WANDB_API_KEY=<your-wandb-api-key>
+    sky launch -c verl --secret WANDB_API_KEY verl-cluster.yml
 
-.. image:: https://github.com/yottalabsai/open-source/blob/main/static/verl/submit_verl_job.png?raw=true
+.. image:: https://github.com/yottalabsai/open-source/blob/main/static/verl/running_job.png?raw=true
+.. image:: https://github.com/yottalabsai/open-source/blob/main/static/verl/running_job_1.png?raw=true
+.. image:: https://github.com/yottalabsai/open-source/blob/main/static/verl/finished.png?raw=true
 
 **Check the cluster on GCP**
 
@@ -230,28 +234,26 @@ Step 3: Submit a job with SkyPilot
 
 **Check Ray Dashboard**
 
-We can see the cluster on the RAY Dashboard with the gcp head node publicIp:8265
+We can see the cluster on the RAY Dashboard with the GCP head node:
+
+```console
+$ sky status --endpoint 8265 verl
+1.2.3.4:8265
+```
 
 .. image:: https://github.com/yottalabsai/open-source/blob/main/static/verl/ray_dashboard_overview.png?raw=true
 .. image:: https://github.com/yottalabsai/open-source/blob/main/static/verl/ray_dashboard_jobs.png?raw=true
 .. image:: https://github.com/yottalabsai/open-source/blob/main/static/verl/ray_dashboard_cluster.png?raw=true
 
-**Check the log of Ray cluster**
-
-.. parsed-literal:: sky logs ray-verl-cluster 1
-
-.. image:: https://github.com/yottalabsai/open-source/blob/main/static/verl/running_job.png?raw=true
-.. image:: https://github.com/yottalabsai/open-source/blob/main/static/verl/running_job_1.png?raw=true
-.. image:: https://github.com/yottalabsai/open-source/blob/main/static/verl/finished.png?raw=true
 
 **Check the checkpoint of model**
 
 .. code-block:: bash
 
     # login the head node
-    ssh ray-verl-cluster
+    ssh verl
     # The global step will vary. Find the correct path from the training logs.
-    cd /root/sky_workdir/checkpoints/verl_examples/gsm8k/
+    cd ~/sky_workdir/checkpoints/verl_examples/gsm8k/
     # Then list contents to find the checkpoint, e.g.:
     ls -R .
 
